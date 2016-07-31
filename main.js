@@ -5,6 +5,7 @@ var stats = require('stats')
 
 function tryCreateCreep(role, priority){
     var bodyCandidates = [
+        [WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
         [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
         [WORK,WORK,CARRY,CARRY,MOVE,MOVE],
         [WORK,WORK,CARRY,MOVE,MOVE],
@@ -72,13 +73,16 @@ module.exports.loop = function () {
     var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
 
     if(builders.length < 3) {
-        tryCreateCreep('builder',1)
+        tryCreateCreep('builder', Game.rooms.E49S14.controller.level)
     }
 
     var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
+    var maxUpgraders = 3;
+    if(Memory.stats && 0 < Memory.stats.restingCreeps)
+        maxUpgraders += Memory.stats.restingCreeps;
 
-    if(upgraders.length < 3) {
-        tryCreateCreep('upgrader',3)
+    if(upgraders.length < maxUpgraders) {
+        tryCreateCreep('upgrader',4)
     }
 
 

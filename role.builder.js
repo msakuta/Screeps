@@ -4,7 +4,7 @@ function builderFilter(x){
     if(x.structureType === STRUCTURE_ROAD)
         structHits = 3000
     else if(x.structureType === STRUCTURE_WALL)
-        structHits = 3000
+        structHits = 10000
     return x.hits < x.hitsMax && x.hits < structHits
 }
 

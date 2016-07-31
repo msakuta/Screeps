@@ -25,23 +25,23 @@ var roleHarvester = {
             var energies = totalEnergy()
             var thirsty = true
             if(energies[0] < energies[1]){
-                var sources = creep.room.find(FIND_STRUCTURES, {
+                var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
-                        return (structure.structureType == STRUCTURE_CONTAINER) && 0 < structure.store.energy;
+                        return (structure.structureType === STRUCTURE_CONTAINER) && 0 < structure.store.energy;
                     }
                 });
-                if(sources.length){
-                    if(creep.withdraw(sources[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(sources[0]);
+                if(source){
+                    if(creep.withdraw(source, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                        creep.moveTo(source);
                     }
                     thirsty = false
                 }
 	        }
             if(thirsty){
-                var targets = creep.room.find(FIND_DROPPED_RESOURCES);
-                if(targets.length) {
-                    creep.moveTo(targets[0]);
-                    creep.pickup(targets[0]);
+                var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                if(target) {
+                    creep.moveTo(target);
+                    creep.pickup(target);
                 }
                 else{
                     var source = creep.pos.findClosestByRange(FIND_SOURCES);

@@ -5,7 +5,7 @@ var stats = require('stats')
 
 function tryCreateCreep(role, priority){
     var bodyCandidates = [
-        [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,,MOVE,MOVE],
+        [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE],
         [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
         [WORK,WORK,CARRY,CARRY,MOVE,MOVE],
         [WORK,WORK,CARRY,MOVE,MOVE],

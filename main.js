@@ -50,17 +50,20 @@ module.exports.loop = function () {
         var towers = room.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}})
         for(var j = 0; j < towers.length; j++) {
             var tower = towers[j]
-            var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (structure) => structure.hits < structure.hitsMax
-            });
-            if(closestDamagedStructure) {
-                tower.repair(closestDamagedStructure);
-            }
-
             var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
             if(closestHostile) {
                 tower.attack(closestHostile);
             }
+            else if(tower.energyCapacity / 2 < tower.energy){
+                var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: (s) => s instanceof StructureWall ? s.hits < 20000 :
+                        s instanceof StructureRoad ? s.hits < 4000 : s.hits < s.hitsMax
+                });
+                if(closestDamagedStructure) {
+                    tower.repair(closestDamagedStructure);
+                }
+            }
+
         }
     }
 

@@ -1,19 +1,10 @@
 var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
+var roleRanger = require('role.ranger');
 var stats = require('stats')
 
-function tryCreateCreep(role, priority){
-    var bodyCandidates = [
-        [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
-        [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
-        [WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
-        [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
-        [WORK,WORK,CARRY,CARRY,MOVE,MOVE],
-        [WORK,WORK,CARRY,MOVE,MOVE],
-        [WORK,CARRY,CARRY,MOVE,MOVE],
-        [WORK,CARRY,MOVE]
-    ];
+function tryCreateCreepInt(role, priority, bodyCandidates){
     var maxCandidate = bodyCandidates.length - (priority || 0)
     for(var i = 0; i < maxCandidate; i++){
         var body = bodyCandidates[i];
@@ -27,6 +18,20 @@ function tryCreateCreep(role, priority){
     for(var i = 0; i < body.length; i++)
         partsStr += body[i][0]
     console.log('Spawning new ' + role + ': ' + partsStr + ', name: ' + newName);
+}
+
+function tryCreateCreep(role, priority){
+    return tryCreateCreepInt(role, priority, [
+        //[WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
+        //[WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
+        [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
+        [WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
+        [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
+        [WORK,WORK,CARRY,CARRY,MOVE,MOVE],
+        [WORK,WORK,CARRY,MOVE,MOVE],
+        [WORK,CARRY,CARRY,MOVE,MOVE],
+        [WORK,CARRY,MOVE]
+    ])
 }
 
 function logStats(){
@@ -120,6 +125,12 @@ module.exports.loop = function () {
         tryCreateCreep('builder', Game.rooms.E49S14.controller.level)
     }
 
+    var rangers = _.filter(Game.creeps, (creep) => creep.memory.role == 'ranger');
+
+    if(rangers.length < 2) {
+        tryCreateCreepInt('ranger', 0, [[RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE]])
+    }
+
     var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
     var maxUpgraders = 3;
     if(Memory.stats && 0 < Memory.stats.restingCreeps)
@@ -137,6 +148,8 @@ module.exports.loop = function () {
         if(creep.memory.role == 'harvester') {
             roleHarvester.run(creep);
         }
+        if(creep.memory.role === 'ranger')
+            roleRanger.run(creep)
         if(creep.memory.role == 'upgrader') {
             roleUpgrader.run(creep);
         }

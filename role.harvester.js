@@ -56,39 +56,38 @@ var roleHarvester = {
             creep.memory.resting = undefined
         }
         else {
-            var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (structure) => {
-                        return (structure.structureType == STRUCTURE_EXTENSION ||
-                                structure.structureType == STRUCTURE_SPAWN ||
-                                structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+            function tryFindTarget(types, isFilled){
+                var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: s => {
+                        for(var i = 0; i < types.length; i++){
+                            if(types[i] === s.structureType && isFilled(s))
+                                return true
+                        }
+                        return false
                     }
-            });
-            if(target) {
-                if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
-                }
-                creep.memory.resting = undefined
-            }
-            else{
-                var targets = creep.room.find(FIND_STRUCTURES, {
-                    filter: (s) => 
-                        (s.structureType === STRUCTURE_CONTAINER
-                        || s.structureType === STRUCTURE_STORAGE) && s.store.energy < s.storeCapacity
-                });
-                if(targets.length > 0) {
-                    if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(targets[0]);
+                })
+                if(target){
+                    if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(target);
                     }
                     creep.memory.resting = undefined
+                    creep.say('fill ' + target.structureType)
+                    return true
                 }
-                else{
-                    var flag = Game.flags['rest']
-                    if(flag && !flag.pos.isNearTo(creep.pos))
-                        creep.moveTo(flag)
-                    else if(!creep.memory.resting){
-                        creep.say('at flag')
-                        creep.memory.resting = true
-                    }
+                return false
+            }
+            
+            // Precede filling tower, then extension and spawn, lastly container and storage.
+            if(!tryFindTarget([STRUCTURE_TOWER], s => s.energy < s.energyCapacity) &&
+                !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity) &&
+                !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => s.store.energy < s.storeCapacity))
+            {
+                var flag = Game.flags['rest']
+                if(flag && !flag.pos.isNearTo(creep.pos))
+                    creep.moveTo(flag)
+                else if(!creep.memory.resting){
+                    creep.say('at flag')
+                    creep.memory.resting = true
                 }
             }
         }

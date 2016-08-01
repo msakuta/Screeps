@@ -1,3 +1,4 @@
+var roleUpgrader = require('role.upgrader')
 
 function builderFilter(x){
     var structHits = x.hitsMax
@@ -55,14 +56,20 @@ var roleBuilder = {
                     creep.memory.target = undefined;
             }
             else{
-    	        var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {filter: builderFilter});
-                if(target){
+    	        var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
+                if(target && false){
                     creep.memory.target = target.id
                 }
                 else{
-        	        var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
-                    if(targets.length) {
-                        creep.memory.target = targets[0].id
+        	        var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {filter: builderFilter});
+                    if(target){
+                        creep.memory.target = target.id
+                    }
+                    else{
+            	        var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+                        if(targets.length) {
+                            creep.memory.target = targets[0].id
+                        }
                     }
                 }
                 if(!creep.memory.target){
@@ -82,7 +89,9 @@ var roleBuilder = {
                 filter: (structure) => {
                     return (structure.structureType == STRUCTURE_EXTENSION ||
                             structure.structureType == STRUCTURE_SPAWN ||
-                            structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+                            structure.structureType == STRUCTURE_TOWER)
+                            && structure.energy < structure.energyCapacity ||
+                            structure.structureType === STRUCTURE_CONTAINER && structure.store.energy < structure.storeCapacity;
                 }
             });
             if(targets.length > 0) {
@@ -100,6 +109,7 @@ var roleBuilder = {
                 }
             }
             else{
+                roleUpgrader.run(creep)
                 var flag = Game.flags['rest']
                 if(flag)
                     creep.moveTo(flag)

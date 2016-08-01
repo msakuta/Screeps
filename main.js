@@ -56,8 +56,17 @@ module.exports.loop = function () {
             }
             else if(tower.energyCapacity / 2 < tower.energy){
                 var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (s) => s instanceof StructureWall ? s.hits < 20000 :
-                        s instanceof StructureRoad ? s.hits < 4000 : s.hits < s.hitsMax
+                    filter: (s) => {
+                        if(s instanceof StructureWall){
+                            if(41 <= s.pos.x)
+                                return false
+                            return s.hits < 30000
+                        }
+                        else if(s instanceof StructureRoad)
+                            return s.hits < 4000
+                        else
+                            return s.hits < s.hitsMax
+                    }
                 });
                 if(closestDamagedStructure) {
                     tower.repair(closestDamagedStructure);
@@ -69,7 +78,7 @@ module.exports.loop = function () {
 
     var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
 
-    if(harvesters.length < 2) {
+    if(harvesters.length < 2 + 1) {
         tryCreateCreep('harvester')
     }
 

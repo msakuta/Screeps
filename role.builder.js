@@ -3,8 +3,11 @@ function builderFilter(x){
     var structHits = x.hitsMax
     if(x.structureType === STRUCTURE_ROAD)
         structHits = 3000
-    else if(x.structureType === STRUCTURE_WALL)
-        structHits = 10000
+    else if(x.structureType === STRUCTURE_WALL){
+        if(41 <= x.pos.x)
+            return false
+        structHits = 20000
+    }
     return x.hits < x.hitsMax && x.hits < structHits
 }
 

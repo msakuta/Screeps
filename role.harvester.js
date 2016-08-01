@@ -39,9 +39,12 @@ var roleHarvester = {
 	        }
             if(thirsty){
                 var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
-                if(target) {
-                    creep.moveTo(target);
-                    creep.pickup(target);
+                if(target && false) {
+                    var path = creep.pos.findPathTo(target);
+                    if(path && path.length){
+                        creep.moveTo(path[0].direction)
+                        creep.pickup(target);
+                    }
                 }
                 else{
                     var source = creep.pos.findClosestByRange(FIND_SOURCES);

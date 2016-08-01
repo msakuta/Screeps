@@ -19,7 +19,7 @@ var roleUpgrader = {
         }
         else {
             var targets = creep.room.find(FIND_DROPPED_RESOURCES);
-            if(targets.length) {
+            if(targets.length && false) {
                 creep.moveTo(targets[0]);
                 creep.pickup(targets[0]);
             }

@@ -5,6 +5,8 @@ var stats = require('stats')
 
 function tryCreateCreep(role, priority){
     var bodyCandidates = [
+        [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
+        [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
         [WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
         [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
         [WORK,WORK,CARRY,CARRY,MOVE,MOVE],
@@ -25,6 +27,36 @@ function tryCreateCreep(role, priority){
     for(var i = 0; i < body.length; i++)
         partsStr += body[i][0]
     console.log('Spawning new ' + role + ': ' + partsStr + ', name: ' + newName);
+}
+
+function logStats(){
+    var energy = 0, energyCapacity = 0
+    var storedEnergy = 0, storedEnergyCapacity = 0
+    for(let i in Game.rooms){
+        let r = Game.rooms[i]
+        energy += r.energyAvailable
+        energyCapacity += r.energyCapacityAvailable
+
+        let containers = r.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_CONTAINER}})
+        for(let j = 0; j < containers.length; j++){
+            storedEnergy += containers[j].store.energy
+            storedEnergyCapacity += containers[j].storeCapacity
+        }
+    }
+
+    var historyLength = 1000
+
+    if(Memory.energyHistory === undefined)
+        Memory.energyHistory = []
+    Memory.energyHistory.push(energy)
+    while(historyLength < Memory.energyHistory.length)
+        Memory.energyHistory.splice(0,1)
+
+    if(Memory.storedEnergyHistory === undefined)
+        Memory.storedEnergyHistory = []
+    Memory.storedEnergyHistory.push(storedEnergy)
+    while(historyLength < Memory.storedEnergyHistory.length)
+        Memory.storedEnergyHistory.splice(0,1)
 }
 
 
@@ -92,6 +124,8 @@ module.exports.loop = function () {
     var maxUpgraders = 3;
     if(Memory.stats && 0 < Memory.stats.restingCreeps)
         maxUpgraders += Memory.stats.restingCreeps;
+    if(1600 < Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1])
+        maxUpgraders += 3;
 
     if(upgraders.length < maxUpgraders) {
         tryCreateCreep('upgrader',4)
@@ -110,6 +144,8 @@ module.exports.loop = function () {
             roleBuilder.run(creep);
         }
     }
+
+    logStats()
 
     Memory.lastTick = Game.time
 }

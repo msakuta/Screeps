@@ -47,7 +47,7 @@ var roleHarvester = {
                     }
                 }
                 else{
-                    var source = creep.pos.findClosestByRange(FIND_SOURCES);
+                    var source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => 0 < s.energy});
                     if(source && creep.harvest(source) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(source);
                     }
@@ -56,24 +56,24 @@ var roleHarvester = {
             creep.memory.resting = undefined
         }
         else {
-            var targets = creep.room.find(FIND_STRUCTURES, {
+            var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType == STRUCTURE_EXTENSION ||
                                 structure.structureType == STRUCTURE_SPAWN ||
                                 structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
                     }
             });
-            if(targets.length > 0) {
-                if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0]);
+            if(target) {
+                if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(target);
                 }
                 creep.memory.resting = undefined
             }
             else{
                 var targets = creep.room.find(FIND_STRUCTURES, {
-                    filter: (structure) => {
-                        return (structure.structureType == STRUCTURE_CONTAINER) && structure.store.energy < structure.storeCapacity;
-                    }
+                    filter: (s) => 
+                        (s.structureType === STRUCTURE_CONTAINER
+                        || s.structureType === STRUCTURE_STORAGE) && s.store.energy < s.storeCapacity
                 });
                 if(targets.length > 0) {
                     if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {

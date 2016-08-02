@@ -82,9 +82,22 @@ var roleHarvester = {
             }
 
             // Precede filling tower, then extension and spawn, lastly container and storage.
-            // Also, tower tend to spend tiny amount of energy from time to time for repairing
-            // roads and containers, so don't spend time for filling tiny amount of energy.
-            if(!tryFindTarget([STRUCTURE_TOWER], s => s.energy + creep.carry.energy <= s.energyCapacity) &&
+            if(!tryFindTarget([STRUCTURE_TOWER], s => {
+                    // Tower tend to spend tiny amount of energy from time to time for repairing
+                    // roads and containers, so don't spend time for filling tiny amount of energy.
+                    // Specifically, if this creep can harvest more than the energy amount it could
+                    // transfer to the tower in the same duration of moving to the tower, it's not
+                    // worth transferring (spending time for harvesting is more beneficial).
+                    // That said, if the tower is getting short in energy, we can't help but restoring it.
+                    if(s.energy < s.energyCapacity * 0.7)
+                        return true
+                    var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
+                    var workParts = creep.getActiveBodyparts(WORK)
+                    var harvestsPerTick = workParts * 2
+                    var totalPotentialHarvests = harvestsPerTick * creep.pos.getRangeTo(s)
+                    // Debug log
+                    //console.log('fillableEnergy: ' + fillableEnergy + ', workParts: ' + workParts + ', totalPotentialHarvests: ' + totalPotentialHarvests)
+                    return totalPotentialHarvests < fillableEnergy}) &&
                 !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity) &&
                 !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => s.store.energy < s.storeCapacity))
             {

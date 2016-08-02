@@ -111,13 +111,21 @@ module.exports.loop = function () {
     var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
 
     if(builders.length < 3) {
-        tryCreateCreep('builder', Game.rooms.E49S14.controller.level)
+        tryCreateCreep('builder', Game.rooms.Spawn1.controller.level)
     }
 
     var rangers = _.filter(Game.creeps, (creep) => creep.memory.role == 'ranger');
+    var maxRangers = 2;
+
+    // If we see an enemy in the room, reinforce attack force.
+    if(0 < Game.spawns.Spawn1.room.find(FIND_HOSTILE_CREEPS).length)
+        maxRangers++
 
     if(rangers.length < 2) {
-        tryCreateCreepInt('ranger', 0, [[RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE]])
+        tryCreateCreepInt('ranger', 0, [
+            [RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE],
+            [RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE]
+        ])
     }
 
     var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');

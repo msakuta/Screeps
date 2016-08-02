@@ -37,6 +37,7 @@ function tryCreateCreep(role, priority){
 function logStats(){
     var energy = 0, energyCapacity = 0
     var storedEnergy = 0, storedEnergyCapacity = 0
+    var source = 0
     for(let i in Game.rooms){
         let r = Game.rooms[i]
         energy += r.energyAvailable
@@ -47,21 +48,24 @@ function logStats(){
             storedEnergy += containers[j].store.energy
             storedEnergyCapacity += containers[j].storeCapacity
         }
+
+        let sources = r.find(FIND_SOURCES)
+        for(let j = 0; j < sources.length; j++)
+            source += sources[j].energy
     }
 
     var historyLength = 1000
+    function appendHistory(key, value){
+        if(Memory[key] === undefined)
+            Memory[key] = []
+        Memory[key].push(value)
+        while(historyLength < Memory[key].length)
+            Memory[key].splice(0,1)
+    }
 
-    if(Memory.energyHistory === undefined)
-        Memory.energyHistory = []
-    Memory.energyHistory.push(energy)
-    while(historyLength < Memory.energyHistory.length)
-        Memory.energyHistory.splice(0,1)
-
-    if(Memory.storedEnergyHistory === undefined)
-        Memory.storedEnergyHistory = []
-    Memory.storedEnergyHistory.push(storedEnergy)
-    while(historyLength < Memory.storedEnergyHistory.length)
-        Memory.storedEnergyHistory.splice(0,1)
+    appendHistory('energyHistory', energy)
+    appendHistory('storedEnergyHistory', storedEnergy)
+    appendHistory('sourceHistory', source)
 }
 
 

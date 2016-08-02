@@ -1,22 +1,30 @@
 var roleUpgrader = require('role.upgrader')
 var roleHarvester = require('role.harvester')
 
-function builderFilter(x){
-    var structHits = x.hitsMax
-    if(x.structureType === STRUCTURE_ROAD)
+function builderFilter(s){
+    var structHits = s.hitsMax
+    if(s.structureType === STRUCTURE_ROAD)
         structHits = 3000
-    else if(x.structureType === STRUCTURE_WALL){
-        if(41 <= x.pos.x)
+    else if(s.structureType === STRUCTURE_WALL){
+        if(41 <= s.pos.x)
             return false
         structHits = 20000
     }
-    return x.hits < x.hitsMax && x.hits < structHits
+    else if(s instanceof StructureRampart)
+        structHits = 50000
+    return s.hits < s.hitsMax && s.hits < structHits
+}
+
+function findDamagedStructures(room){
+    return room.find(FIND_STRUCTURES, builderFilter);
 }
 
 
 var roleBuilder = {
 
     builderFilter: builderFilter,
+
+    findDamagedStructures: findDamagedStructures,
 
     /** @param {Creep} creep **/
     run: function(creep) {

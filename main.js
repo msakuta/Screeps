@@ -92,19 +92,7 @@ module.exports.loop = function () {
                 tower.attack(closestHostile);
             }
             else if(tower.energyCapacity / 2 < tower.energy){
-                var damagedStructures = tower.room.find(FIND_STRUCTURES, {
-                    filter: (s) => {
-                        if(s instanceof StructureWall){
-                            if(41 <= s.pos.x)
-                                return false
-                            return s.hits < 50000
-                        }
-                        else if(s instanceof StructureRoad)
-                            return s.hits < 4000
-                        else
-                            return s.hits < s.hitsMax
-                    }
-                });
+                var damagedStructures = roleBuilder.findDamagedStructures(tower.room)
                 if(0 < damagedStructures.length) {
                     damagedStructures.sort((a,b) => a.hits - b.hits)
                     tower.repair(damagedStructures[0]);

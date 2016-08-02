@@ -6,9 +6,9 @@ function builderFilter(s){
     if(s.structureType === STRUCTURE_ROAD)
         structHits = 3000
     else if(s.structureType === STRUCTURE_WALL){
-        if(41 <= s.pos.x)
+        if(39 <= s.pos.x)
             return false
-        structHits = 20000
+        structHits = 50000
     }
     else if(s instanceof StructureRampart)
         structHits = 50000
@@ -16,7 +16,9 @@ function builderFilter(s){
 }
 
 function findDamagedStructures(room){
-    return room.find(FIND_STRUCTURES, builderFilter);
+    return room.find(FIND_STRUCTURES, {
+        filter: s => builderFilter(s) || s.pos.x < 39 && s.structureType === STRUCTURE_WALL && s.hits < 60000
+    });
 }
 
 

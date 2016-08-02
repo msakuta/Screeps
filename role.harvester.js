@@ -26,9 +26,7 @@ var roleHarvester = {
             var thirsty = true
             if(energies[0] < energies[1]){
                 var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (structure) => {
-                        return (structure.structureType === STRUCTURE_CONTAINER) && 0 < structure.store.energy;
-                    }
+                    filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy
                 });
                 if(source){
                     if(creep.withdraw(source, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
@@ -76,7 +74,7 @@ var roleHarvester = {
                 }
                 return false
             }
-            
+
             // Precede filling tower, then extension and spawn, lastly container and storage.
             // Also, tower tend to spend tiny amount of energy from time to time for repairing
             // roads and containers, so don't spend time for filling tiny amount of energy.

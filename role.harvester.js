@@ -71,14 +71,16 @@ var roleHarvester = {
                         creep.moveTo(target);
                     }
                     creep.memory.resting = undefined
-                    creep.say('fill ' + target.structureType)
+                    //creep.say('fill ' + target.structureType)
                     return true
                 }
                 return false
             }
             
             // Precede filling tower, then extension and spawn, lastly container and storage.
-            if(!tryFindTarget([STRUCTURE_TOWER], s => s.energy < s.energyCapacity) &&
+            // Also, tower tend to spend tiny amount of energy from time to time for repairing
+            // roads and containers, so don't spend time for filling tiny amount of energy.
+            if(!tryFindTarget([STRUCTURE_TOWER], s => s.energy + creep.carry.energy <= s.energyCapacity) &&
                 !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity) &&
                 !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => s.store.energy < s.storeCapacity))
             {
@@ -91,7 +93,7 @@ var roleHarvester = {
                 }
             }
         }
-	}
+    }
 };
 
 module.exports = roleHarvester;

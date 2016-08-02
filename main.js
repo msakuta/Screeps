@@ -111,7 +111,7 @@ module.exports.loop = function () {
     var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
 
     if(builders.length < 3) {
-        tryCreateCreep('builder', Game.rooms.Spawn1.controller.level)
+        tryCreateCreep('builder', Game.spawns.Spawn1.room.controller.level)
     }
 
     var rangers = _.filter(Game.creeps, (creep) => creep.memory.role == 'ranger');

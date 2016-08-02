@@ -23,13 +23,13 @@ module.exports = {
         for(var i in Game.rooms){
             var closestToExpire = 1500
             var room = Game.rooms[i]
-            var totalCreeps = [0,0,0]
-            var dyingCreeps = [0,0,0]
+            var totalCreeps = [0,0,0,0]
+            var dyingCreeps = [0,0,0,0]
             var restingCreeps = 0
             var creeps = room.find(FIND_MY_CREEPS)
             for(var j = 0; j < creeps.length; j++){
                 var creep = creeps[j]
-                var role = creep.memory.role === 'harvester' ? 0 : creep.memory.role === 'builder' ? 1 : 2
+                var role = creep.memory.role === 'harvester' ? 0 : creep.memory.role === 'builder' ? 1 : creep.memory.role === 'ranger' ? 2 : 3
                 totalCreeps[role]++
                 if(creeps[j].ticksToLive < 200)
                     dyingCreeps[role]++
@@ -39,13 +39,13 @@ module.exports = {
                     closestToExpire = creep.ticksToLive
             }
             var creepStats = ''
-            for(var j = 0; j < 3; j++){
-                creepStats += dyingCreeps[j] + '/' + totalCreeps[j] + (j !== 2 ? ',' : '')
+            for(var j = 0; j < 4; j++){
+                creepStats += dyingCreeps[j] + '/' + totalCreeps[j] + (j !== 3 ? ',' : '')
             }
 
             var targets = Game.rooms[i].find(FIND_STRUCTURES, {filter: (x) => x.hits < x.hitsMax && x.hits < 3000});
             var en = totalEnergy(room)
-            console.log(Game.time + ' [' + i + '] Damaged structs:' + targets.length + ', creepStats: '
+            console.log(Game.time + ' [' + i + '] s:' + targets.length + ', creeps: '
                 + creepStats + ',' + restingCreeps + ',' + closestToExpire + ', en: ' + en[0] + '/' + en[1])
         }
     }

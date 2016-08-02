@@ -42,7 +42,7 @@ function logStats(){
         energy += r.energyAvailable
         energyCapacity += r.energyCapacityAvailable
 
-        let containers = r.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_CONTAINER}})
+        let containers = r.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE})
         for(let j = 0; j < containers.length; j++){
             storedEnergy += containers[j].store.energy
             storedEnergyCapacity += containers[j].storeCapacity
@@ -92,12 +92,12 @@ module.exports.loop = function () {
                 tower.attack(closestHostile);
             }
             else if(tower.energyCapacity / 2 < tower.energy){
-                var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+                var damagedStructures = tower.room.find(FIND_STRUCTURES, {
                     filter: (s) => {
                         if(s instanceof StructureWall){
                             if(41 <= s.pos.x)
                                 return false
-                            return s.hits < 30000
+                            return s.hits < 50000
                         }
                         else if(s instanceof StructureRoad)
                             return s.hits < 4000
@@ -105,8 +105,9 @@ module.exports.loop = function () {
                             return s.hits < s.hitsMax
                     }
                 });
-                if(closestDamagedStructure) {
-                    tower.repair(closestDamagedStructure);
+                if(0 < damagedStructures.length) {
+                    damagedStructures.sort((a,b) => a.hits - b.hits)
+                    tower.repair(damagedStructures[0]);
                 }
             }
 

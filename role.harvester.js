@@ -45,7 +45,13 @@ var roleHarvester = {
                     }
                 }
                 else{
-                    var source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => 0 < s.energy});
+                    var source = creep.pos.findClosestByRange(FIND_SOURCES, {
+                        // Skip empty sources, but if it's nearing to regenration, it's worth approaching.
+                        // This way, creeps won't waste time by wandering about while waiting regeneration.
+                        // The rationale behind this number is that you can reach the other side of a room
+                        // approximately within 50 ticks, provided that roads are properly layed out.
+                        filter: s => 0 < s.energy || s.ticksToRegeneration < 50
+                    });
                     if(source && creep.harvest(source) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(source);
                     }

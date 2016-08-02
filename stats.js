@@ -7,15 +7,14 @@
  * mod.thing == 'a thing'; // true
  */
 function totalEnergy(room){
-    var energy = 0, energyCapacity = 0
-    energy += Game.spawns.Spawn1.energy
-    energyCapacity += Game.spawns.Spawn1.energyCapacity
-    var exts = room.find(FIND_MY_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_EXTENSION})
-    for(var i = 0; i < exts.length; i++){
-        energy += exts[i].energy;
-        energyCapacity += exts[i].energyCapacity
+    var storedEnergy = 0, storedEnergyCapacity = 0
+    let containers = room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE})
+    for(let j = 0; j < containers.length; j++){
+        storedEnergy += containers[j].store.energy
+        storedEnergyCapacity += containers[j].storeCapacity
     }
-    return [energy, energyCapacity]
+
+    return [room.energyAvailable, room.energyCapacityAvailable, storedEnergy, storedEnergyCapacity]
 }
 
 module.exports = {
@@ -46,7 +45,7 @@ module.exports = {
             var targets = Game.rooms[i].find(FIND_STRUCTURES, {filter: (x) => x.hits < x.hitsMax && x.hits < 3000});
             var en = totalEnergy(room)
             console.log(Game.time + ' [' + i + '] s:' + targets.length + ', creeps: '
-                + creepStats + ',' + restingCreeps + ',' + closestToExpire + ', en: ' + en[0] + '/' + en[1])
+                + creepStats + ',' + restingCreeps + ',' + closestToExpire + ', en: ' + en[0] + '/' + en[1] + ' ' + en[2] + '/' + en[3])
         }
     }
 };

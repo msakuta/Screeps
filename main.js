@@ -22,8 +22,8 @@ function tryCreateCreepInt(role, priority, bodyCandidates){
 
 function tryCreateCreep(role, priority){
     return tryCreateCreepInt(role, priority, [
-        //[WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
-        //[WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
+        [WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
+        [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
         [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
         [WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
         [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE],
@@ -106,6 +106,8 @@ module.exports.loop = function () {
         }
     }
 
+    roleHarvester.sortDistance()
+
     var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
 
     if(harvesters.length < 2 + 1) {
@@ -137,7 +139,7 @@ module.exports.loop = function () {
     if(Memory.stats && 0 < Memory.stats.restingCreeps)
         maxUpgraders += Memory.stats.restingCreeps;
     if(1600 < Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1])
-        maxUpgraders += 3;
+        maxUpgraders += 1;
 
     if(upgraders.length < maxUpgraders) {
         tryCreateCreep('upgrader',4)

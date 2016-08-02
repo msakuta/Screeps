@@ -1,4 +1,20 @@
+
+var spawnCreeps = []
+
 var roleHarvester = {
+
+    sortDistance: function(){
+        var spawn = Game.spawns.Spawn1
+        spawnCreeps = _.filter(Game.creeps, (creep) => (creep.memory.role === 'harvester' || creep.memory.role === 'builder') && creep.room === spawn.room)
+        for(var i = 0; i < spawnCreeps.length; i++)
+            spawnCreeps[i].spawnDist = spawnCreeps[i].pos.getRangeTo(spawn)
+        spawnCreeps.sort((a,b) => a.spawnDist - b.spawnDist)
+        distArray = [];
+        for(let i = 0; i < spawnCreeps.length; i++)
+            distArray[i] = spawnCreeps[i].spawnDist
+        // Debug log
+        //console.log(distArray)
+    },
 
     /** @param {Creep} creep **/
     run: function(creep) {
@@ -24,7 +40,7 @@ var roleHarvester = {
             }
             var energies = totalEnergy()
             var thirsty = true
-            if(energies[0] < energies[1]){
+            if(energies[0] < energies[1] && spawnCreeps.indexOf(creep) < 3){
                 var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy
                 });

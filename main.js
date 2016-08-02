@@ -66,6 +66,7 @@ function logStats(){
     appendHistory('energyHistory', energy)
     appendHistory('storedEnergyHistory', storedEnergy)
     appendHistory('sourceHistory', source)
+    appendHistory('cpuHistory', Game.cpu.getUsed())
 }
 
 

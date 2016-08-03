@@ -6,13 +6,13 @@ var roleUpgrader = {
         if(creep.memory.upgrading && creep.carry.energy == 0) {
             creep.memory.upgrading = false;
             creep.say('harvesting');
-	    }
-	    if(!creep.memory.upgrading && creep.carry.energy == creep.carryCapacity) {
-	        creep.memory.upgrading = true;
-	        creep.say('upgrading');
-	    }
+        }
+        if(!creep.memory.upgrading && creep.carry.energy == creep.carryCapacity) {
+            creep.memory.upgrading = true;
+            creep.say('upgrading');
+        }
 
-	    if(creep.memory.upgrading) {
+        if(creep.memory.upgrading) {
             if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(creep.room.controller);
             }
@@ -24,9 +24,19 @@ var roleUpgrader = {
                 creep.pickup(targets[0]);
             }
             else{
-                var sources = creep.room.find(FIND_SOURCES);
-                if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(sources[0]);
+                var source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => 0 < s.energy});
+                if(source){
+                    if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(source);
+                    }
+                }
+                else{
+                    // If all sources are depleted and there is excess energy in the storage, withdraw from it
+                    var storage = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {filter: s => s.structureType === STRUCTURE_STORAGE && 50000 < s.store.energy})
+                    if(storage && creep.withdraw(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
+                        creep.moveTo(storage);
+                    else if(0 < creep.carry.energy) // If everything fails and still has energy, pour it into the controller before die
+                        creep.memory.upgrading = true
                 }
             }
         }

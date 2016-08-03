@@ -141,6 +141,8 @@ module.exports.loop = function () {
         maxUpgraders += Memory.stats.restingCreeps;
     if(1600 < Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1])
         maxUpgraders += 1;
+    if(100000 < Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1])
+        maxUpgraders += 1;
 
     if(upgraders.length < maxUpgraders) {
         tryCreateCreep('upgrader',4)

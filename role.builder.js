@@ -4,7 +4,7 @@ var roleHarvester = require('role.harvester')
 function builderFilter(s){
     var structHits = s.hitsMax
     if(s.structureType === STRUCTURE_ROAD)
-        structHits = 3000
+        structHits = 4000
     else if(s.structureType === STRUCTURE_WALL){
         if(39 <= s.pos.x)
             return false
@@ -15,9 +15,27 @@ function builderFilter(s){
     return s.hits < s.hitsMax && s.hits < structHits
 }
 
+// Tower and builder both repair structures, but their precedences are different
+// in that towers can save cost of time spent for approaching targets.
+// Towers are penalized by inefficiency for distant structures, but movement cost
+// tend to surpass especially when body count increases after RCL gets high.
+function towerBuilderFilter(s){
+    var structHits = s.hitsMax
+    if(s.structureType === STRUCTURE_ROAD)
+        structHits = 3000
+    else if(s.structureType === STRUCTURE_WALL){
+        if(39 <= s.pos.x)
+            return false
+        structHits = 70000
+    }
+    else if(s instanceof StructureRampart)
+        structHits = 70000
+    return s.hits < s.hitsMax && s.hits < structHits
+}
+
 function findDamagedStructures(room){
     return room.find(FIND_STRUCTURES, {
-        filter: s => builderFilter(s) || s.pos.x < 39 && s.structureType === STRUCTURE_WALL && s.hits < 60000
+        filter: s => towerBuilderFilter(s)
     });
 }
 

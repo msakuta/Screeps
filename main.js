@@ -1,5 +1,6 @@
 var roleHarvester = require('role.harvester');
 var roleAttacker = require('role.attacker');
+var roleClaimer = require('role.claimer');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 var roleRanger = require('role.ranger');
@@ -126,6 +127,15 @@ module.exports.loop = function () {
         ])
     }
 
+    var claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
+    var maxClaimers = Math.min(2, Math.floor(Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1] / 1e5))
+
+    if(claimers.length < maxClaimers) {
+        tryCreateCreepInt('claimer', 0, [
+            [CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,MOVE,MOVE],
+        ])
+    }
+
     var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
 
     if(builders.length < 3) {
@@ -167,6 +177,8 @@ module.exports.loop = function () {
         }
         if(creep.memory.role === 'attacker')
             roleAttacker.run(creep)
+        if(creep.memory.role === 'claimer')
+            roleClaimer.run(creep)
         if(creep.memory.role === 'ranger')
             roleRanger.run(creep)
         if(creep.memory.role == 'upgrader') {

@@ -4,8 +4,10 @@ var roleClaimer = {
     /** @param {Creep} creep **/
     run: function(creep) {
 
-        if(creep.room.name !== 'E49S13')
-            creep.moveTo(new RoomPosition(25,25,'E49S13'))
+        var roomName = Game.flags.reserve && Game.flags.reserve.room ? Game.flags.reserve.room.name : 'E49S13'
+
+        if(creep.room.name !== roomName)
+            creep.moveTo(new RoomPosition(25,25,roomName))
         else{
             var target = creep.room.controller
             if(target && !target.my){

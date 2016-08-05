@@ -13,31 +13,40 @@ var roleAttacker = {
                 creep.say('attacker')
             }
 
+            var roomName = Game.flags.reserve && Game.flags.reserve.room ? Game.flags.reserve.room.name : 'E49S13'
+
             // If possible, pick dropped resources on the way
             var drop = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES)
             if(drop){
                 if(ERR_NOT_IN_RANGE === creep.pickup(drop))
                     creep.moveTo(drop)
             }
-            else if(creep.room.name !== 'E49S13')
-                creep.moveTo(new RoomPosition(25,25,'E49S13'))
+            else if(creep.room.name !== roomName)
+                creep.moveTo(new RoomPosition(25,25,roomName))
             else{
-                var container = creep.pos.findClosestByPath(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER && 0 < s.store.energy})
-                if(container){
-                    var r = creep.withdraw(container, RESOURCE_ENERGY)
-                    if(r === ERR_NOT_IN_RANGE)
-                        creep.moveTo(container)
+                // Dig source if we can
+                var target = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => 0 < s.energy})
+                if((!creep.room.controller || creep.room.controller.my) && target && ERR_NOT_IN_RANGE === creep.harvest(target)){
+                    creep.moveTo(target)
                 }
                 else{
-                    var source = creep.pos.findClosestByRange(FIND_SOURCES, {
-                        // Skip empty sources, but if it's nearing to regenration, it's worth approaching.
-                        // This way, creeps won't waste time by wandering about while waiting regeneration.
-                        // The rationale behind this number is that you can reach the other side of a room
-                        // approximately within 50 ticks, provided that roads are properly layed out.
-                        filter: s => 0 < s.energy || s.ticksToRegeneration < 50
-                    });
-                    if(source && creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(source);
+                    var container = creep.pos.findClosestByRange(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER && 0 < s.store.energy})
+                    if(container){
+                        var r = creep.withdraw(container, RESOURCE_ENERGY)
+                        if(r === ERR_NOT_IN_RANGE)
+                            creep.moveTo(container)
+                    }
+                    else{
+                        var source = creep.pos.findClosestByRange(FIND_SOURCES, {
+                            // Skip empty sources, but if it's nearing to regenration, it's worth approaching.
+                            // This way, creeps won't waste time by wandering about while waiting regeneration.
+                            // The rationale behind this number is that you can reach the other side of a room
+                            // approximately within 50 ticks, provided that roads are properly layed out.
+                            filter: s => 0 < s.energy || s.ticksToRegeneration < 50
+                        });
+                        if(source && creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(source);
+                        }
                     }
                 }
             }

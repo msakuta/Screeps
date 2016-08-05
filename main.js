@@ -120,7 +120,10 @@ module.exports.loop = function () {
     var maxAttackers = Math.min(3, Math.floor(Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1] / 5e4))
 
     if(attackers.length < maxAttackers) {
-        tryCreateCreep('attacker')
+        tryCreateCreepInt('attacker', 0, [
+            [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
+            [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
+        ])
     }
 
     var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');

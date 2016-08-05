@@ -12,7 +12,14 @@ var roleAttacker = {
                 creep.memory.harvesting = true
                 creep.say('attacker')
             }
-            if(creep.room.name !== 'E49S13')
+
+            // If possible, pick dropped resources on the way
+            var drop = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES)
+            if(drop){
+                if(ERR_NOT_IN_RANGE === creep.pickup(drop))
+                    creep.moveTo(drop)
+            }
+            else if(creep.room.name !== 'E49S13')
                 creep.moveTo(new RoomPosition(25,25,'E49S13'))
             else{
                 var container = creep.pos.findClosestByPath(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER && 0 < s.store.energy})
@@ -59,9 +66,14 @@ var roleAttacker = {
             }
 
             var target
-            if(target = tryFindTarget([STRUCTURE_CONTAINER], s => s.hits < s.hitsMax * 0.8)){
-                if(ERR_NOT_IN_RANGE === creep.repair(target))
+            if(creep.memory.target && (target = Game.getObjectById(creep.memory.target))){
+                if(target.hitsMax * 0.7 < target.hits)
+                    creep.memory.target = null
+                else if(ERR_NOT_IN_RANGE === creep.repair(target))
                     creep.moveTo(target)
+            }
+            else if(target = tryFindTarget([STRUCTURE_CONTAINER], s => s.hits < s.hitsMax * 0.5)){
+                creep.memory.target = target.id
             }
             else if(creep.room.name !== 'E49S14')
                 creep.moveTo(new RoomPosition(25,25,'E49S14'))

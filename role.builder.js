@@ -6,7 +6,7 @@ function builderFilter(s){
     if(Game.flags.norepair && Game.flags.norepair.pos.isEqualTo(s.pos))
         return false
     if(s.structureType === STRUCTURE_ROAD)
-        structHits = 4000
+        structHits = 3000
     else if(s.structureType === STRUCTURE_WALL){
         if(39 <= s.pos.x)
             return false
@@ -26,14 +26,14 @@ function towerBuilderFilter(s){
     if(Game.flags.norepair && Game.flags.norepair.pos.isEqualTo(s.pos))
         return false
     if(s.structureType === STRUCTURE_ROAD)
-        structHits = 3000
+        structHits = 4000
     else if(s.structureType === STRUCTURE_WALL){
         if(39 <= s.pos.x)
             return false
-        structHits = 70000
+        structHits = 100000
     }
     else if(s instanceof StructureRampart)
-        structHits = 70000
+        structHits = 100000
     return s.hits < s.hitsMax && s.hits < structHits
 }
 
@@ -59,11 +59,11 @@ var roleBuilder = {
         
         var deconstructingCreeps = countTasks('deconstruct')
 
-        console.log(creep.name + ': decon: ' + deconstructingCreeps + ' task: ' + creep.memory.task)
+        //console.log(creep.name + ': decon: ' + deconstructingCreeps + ' task: ' + creep.memory.task + ' en: ' + creep.carry.energy)
 
         if(creep.memory.task === 'deconstruct' && 1 < deconstructingCreeps){
             creep.memory.task = ''
-            deconstructCreeps--
+            deconstructingCreeps--
         }
 
         if(creep.carry.energy == 0) {
@@ -77,7 +77,7 @@ var roleBuilder = {
                 creep.say('harvesting');
             }
         }
-        if(!creep.memory.task !== 'build' && creep.carry.energy == creep.carryCapacity){
+        else if(creep.memory.task !== 'build' && creep.carry.energy == creep.carryCapacity){
             var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
             var targets2 = creep.room.find(FIND_STRUCTURES, {filter: builderFilter});
             if(targets.length || targets2.length) {

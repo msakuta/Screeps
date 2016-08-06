@@ -4,16 +4,19 @@ var roleAttacker = {
     /** @param {Creep} creep **/
     run: function(creep) {
 
-        if(creep.carry.energy === creep.carryCapacity)
-            creep.memory.harvesting = undefined
-
         if(creep.memory.harvesting || creep.carry.energy === 0) {
             if(!creep.memory.harvesting){
                 creep.memory.harvesting = true
                 creep.say('attacker')
             }
 
-            var roomName = Game.flags.reserve && Game.flags.reserve.room ? Game.flags.reserve.room.name : 'E49S13'
+            if(creep.carry.energy === creep.carryCapacity){
+                creep.memory.harvesting = undefined
+                creep.memory.target = undefined
+                return
+            }
+
+            var roomName = Game.flags.reserve && Game.flags.reserve.room ? Game.flags.reserve.room.name : 'E48S13'
 
             // If possible, pick dropped resources on the way
             var drop = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES)
@@ -64,7 +67,11 @@ var roleAttacker = {
                     }
                 })
                 if(target){
-                    if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    if(target instanceof ConstructionSite){
+                        if(creep.build(target) === ERR_NOT_IN_RANGE)
+                            creep.moveTo(target)
+                    }
+                    else if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(target);
                     }
                     creep.memory.resting = undefined
@@ -76,12 +83,26 @@ var roleAttacker = {
 
             var target
             if(creep.memory.target && (target = Game.getObjectById(creep.memory.target))){
-                if(target.hitsMax * 0.7 < target.hits)
+                if(target instanceof ConstructionSite){
+                    if(ERR_NOT_IN_RANGE === creep.build(target))
+                        creep.moveTo(target)
+                }
+                else if(target instanceof StructureController){
+                    if(ERR_NOT_IN_RANGE === creep.upgradeController(target))
+                        creep.moveTo(target)
+                }
+                else if(target.hitsMax * 0.7 < target.hits)
                     creep.memory.target = null
                 else if(ERR_NOT_IN_RANGE === creep.repair(target))
                     creep.moveTo(target)
             }
+            else if(target = tryFindTarget([STRUCTURE_CONTROLLER], s => s.ticksToDowngrade < 3000)){
+                creep.memory.target = target.id
+            }
             else if(target = tryFindTarget([STRUCTURE_CONTAINER], s => s.hits < s.hitsMax * 0.5)){
+                creep.memory.target = target.id
+            }
+            else if(creep.room.controller && creep.room.controller.my && (target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES))){
                 creep.memory.target = target.id
             }
             else if(creep.room.name !== 'E49S14')

@@ -18,14 +18,14 @@ module.exports = {
                             0 < s.store.energy && s.room === creep.room
                     })
                     if(container){
-                        if(creep.withdraw(container) === ERR_NOT_IN_RANGE)
+                        if(creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
                             creep.moveTo(container)
                     }
                     else{
                         let source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => s.room === creep.room})
                         if(source){
-                            if(creep.pos.getRangeTo(source) <= 6){
-                                let awayPath = PathFinder.search(creep.pos, {pos: source.pos, range: 7}, {flee: true}).path
+                            if(creep.pos.getRangeTo(source) <= 2){
+                                let awayPath = PathFinder.search(creep.pos, {pos: source.pos, range: 3}, {flee: true}).path
                                 //console.log(awayPath)
                                 if(awayPath.length)
                                     creep.moveTo(awayPath[awayPath.length-1])

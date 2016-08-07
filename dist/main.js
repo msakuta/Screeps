@@ -121,6 +121,31 @@ module.exports.loop = function () {
         }
     }
 
+    // Control links
+    for(var name in Game.rooms){
+        var room = Game.rooms[name]
+        if(room.storage){
+            let links = room.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_LINK}})
+            for(var j = 0; j < links.length; j++) {
+                let link = links[j]
+                let range = link.pos.getRangeTo(room.storage)
+                link.range = range
+            }
+
+            links.sort((a,b) => a.range - b.range)
+
+            if(2 <= links.length){
+                links[1].transferEnergy(links[0])
+                // Cache sink and source flags to use for harvesters
+                links[0].sink = true
+                links[1].source = true
+                //console.log('links sink: ' + links[0] + ', source: ' + links[1])
+            }
+            room.links = links
+        }
+    }
+
+
     roleHarvester.sortDistance()
 
     var bodyCosts = {

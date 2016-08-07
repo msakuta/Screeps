@@ -64,7 +64,8 @@ var roleHarvester = {
                     spawn = Game.spawns[k]
             if(energies[0] < energies[1] && spawn && spawnCreeps[spawn.name].indexOf(creep) < 3){
                 var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy
+                    filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy ||
+                        s.structureType === STRUCTURE_LINK && s.sink && 0 < s.energy
                 });
                 if(source){
                     if(creep.withdraw(source, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
@@ -77,30 +78,40 @@ var roleHarvester = {
                 var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
                 var path = target ? creep.pos.findPathTo(target) : null
                 // Go to dropped resource if a valid path is found to it and worth it
-                if(target && path && totalPotentialHarvests(creep, path.length) < target.amount){
+                if(target && path && path.length && totalPotentialHarvests(creep, path.length) < target.amount){
                     creep.move(path[0].direction)
                     creep.pickup(target);
                 }
                 else if(!creep.room.controller || creep.room.controller.my){
-                    var sources = []
-                    // We can't find the closest source among multiple rooms.
-/*                    for(let k in Game.spawns){
-                        let spawn = Game.spawns[k]
-                        if(spawn.my)
-                            sources = sources.concat(spawn.room.find(FIND_SOURCES))
-                    }*/
-                    //console.log(creep.name + ': ' + sources.length)
+                    var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        filter: s => s.structureType === STRUCTURE_LINK && s.sink && 0 < s.energy &&
+                            creep.pos.getRangeTo(s) <= 5
+                    })
+                    if(target){
+                        if(creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
+                            creep.moveTo(target);
+                    }
+                    else{
+                        var sources = []
+                        // We can't find the closest source among multiple rooms.
+    /*                    for(let k in Game.spawns){
+                            let spawn = Game.spawns[k]
+                            if(spawn.my)
+                                sources = sources.concat(spawn.room.find(FIND_SOURCES))
+                        }*/
+                        //console.log(creep.name + ': ' + sources.length)
 
-                    // Find the closest source in this room.
-                    var source = creep.pos.findClosestByRange(FIND_SOURCES, {
-                        // Skip empty sources, but if it's nearing to regenration, it's worth approaching.
-                        // This way, creeps won't waste time by wandering about while waiting regeneration.
-                        // The rationale behind this number is that you can reach the other side of a room
-                        // approximately within 50 ticks, provided that roads are properly layed out.
-                        filter: s => 0 < s.energy || s.ticksToRegeneration < 50
-                    });
-                    if(source && creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(source);
+                        // Find the closest source in this room.
+                        var source = creep.pos.findClosestByRange(FIND_SOURCES, {
+                            // Skip empty sources, but if it's nearing to regenration, it's worth approaching.
+                            // This way, creeps won't waste time by wandering about while waiting regeneration.
+                            // The rationale behind this number is that you can reach the other side of a room
+                            // approximately within 50 ticks, provided that roads are properly layed out.
+                            filter: s => 0 < s.energy || s.ticksToRegeneration < 50
+                        });
+                        if(source && creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(source);
+                        }
                     }
                 }
             }
@@ -138,6 +149,11 @@ var roleHarvester = {
                     // That said, if the tower is getting short in energy, we can't help but restoring it.
                     if(s.energy < s.energyCapacity * 0.7)
                         return true
+                    var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
+                    return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&
+                !tryFindTarget([STRUCTURE_LINK], s => {
+                    if(!s.source || !(s.energy < s.energyCapacity) || 5 < creep.pos.getRangeTo(s))
+                        return false
                     var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
                     return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&
                 !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity) &&

@@ -50,7 +50,7 @@ var roleHarvester = {
                 creep.memory.harvesting = true
                 creep.say('harvester')
             }
-            let hostile = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {filter: s => s.pos.getRangeTo(creep.pos) < 25})
+            let hostile = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {filter: s => !(s instanceof StructureController) && s.pos.getRangeTo(creep.pos) < 25})
             if(hostile){
                 if(creep.dismantle(hostile) === ERR_NOT_IN_RANGE)
                     creep.moveTo(hostile)
@@ -81,7 +81,17 @@ var roleHarvester = {
                     creep.move(path[0].direction)
                     creep.pickup(target);
                 }
-                else{
+                else if(!creep.room.controller || creep.room.controller.my){
+                    var sources = []
+                    // We can't find the closest source among multiple rooms.
+/*                    for(let k in Game.spawns){
+                        let spawn = Game.spawns[k]
+                        if(spawn.my)
+                            sources = sources.concat(spawn.room.find(FIND_SOURCES))
+                    }*/
+                    //console.log(creep.name + ': ' + sources.length)
+
+                    // Find the closest source in this room.
                     var source = creep.pos.findClosestByRange(FIND_SOURCES, {
                         // Skip empty sources, but if it's nearing to regenration, it's worth approaching.
                         // This way, creeps won't waste time by wandering about while waiting regeneration.
@@ -133,13 +143,37 @@ var roleHarvester = {
                 !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity) &&
                 !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => s.store.energy < s.storeCapacity))
             {
-                var flag = Game.flags['rest']
+                // If there's nothing to do, find a room with least working force
+                // and visit it as a helping hand.
+                // Technically, the least working force does not necessarily meaning
+                // the highest demand, but it's simple and effective approximation.
+                var leastSpawn = null
+                var leastHarvesterCount = 10
+                for(let k in Game.spawns){
+                    let spawn = Game.spawns[k]
+                    if(spawn.my){
+                        let harvesterCount = _.filter(Game.creeps, c => c.room === spawn.room && c.memory.role === 'harvester').length
+                        if(harvesterCount < leastHarvesterCount){
+                            leastHarvesterCount = harvesterCount
+                            leastSpawn = spawn
+                        }
+                    }
+                }
+                //console.log(leastSpawn + ' ' + leastHarvesterCount)
+                if(leastSpawn)
+                    creep.moveTo(leastSpawn)
+                creep.memory.harvesting = true
+
+                // Temporarily disable the code to go to resting place since
+                // creeps in the other rooms than the location of rest flag
+                // rush to the flag.
+/*                var flag = Game.flags['rest']
                 if(flag && !flag.pos.isNearTo(creep.pos))
                     creep.moveTo(flag)
                 else if(!creep.memory.resting){
                     creep.say('at flag')
                     creep.memory.resting = true
-                }
+                }*/
             }
         }
     }

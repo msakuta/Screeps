@@ -226,7 +226,8 @@ module.exports.loop = function () {
             }
         }
 
-        if(builderCount < (2 + spawn.room.controller.level / 3) && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2]) {
+        // You don't really need more than 3 builders
+        if(builderCount < (2 + (3 < spawn.room.controller.level)) && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2]) {
             tryCreateCreep('builder', spawn.room.controller.level - 1, spawn)
         }
     }

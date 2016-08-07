@@ -212,7 +212,7 @@ module.exports.loop = function () {
     // Create transporters
     if(Game.spawns.Spawn2){
         let transporters = _.filter(Game.creeps, creep => creep.memory.role === 'transporter')
-        if(transporters.length < 3){
+        if(transporters.length < 1){
             tryCreateCreepInt('transporter', 0, [
                 [WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
                 [WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
@@ -223,6 +223,7 @@ module.exports.loop = function () {
 
     var roles = {
         harvester: roleHarvester.run,
+        builder: roleBuilder.run,
         attacker: roleAttacker.run,
         claimer: roleClaimer.run,
         ranger: roleRanger.run,

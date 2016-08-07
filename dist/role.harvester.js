@@ -60,9 +60,9 @@ var roleHarvester = {
             var thirsty = true
             var spawn
             for(let k in Game.spawns)
-                if(Game.spawns[k] === creep.room)
+                if(Game.spawns[k].room === creep.room)
                     spawn = Game.spawns[k]
-            if(energies[0] < energies[1] && spawn && spawnCreeps[spawn].indexOf(creep) < 3){
+            if(energies[0] < energies[1] && spawn && spawnCreeps[spawn.name].indexOf(creep) < 3){
                 var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy
                 });

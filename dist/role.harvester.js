@@ -50,6 +50,12 @@ var roleHarvester = {
                 creep.memory.harvesting = true
                 creep.say('harvester')
             }
+            let hostile = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {filter: s => s.pos.getRangeTo(creep.pos) < 25})
+            if(hostile){
+                if(creep.dismantle(hostile) === ERR_NOT_IN_RANGE)
+                    creep.moveTo(hostile)
+                return
+            }
             var energies = totalEnergy()
             var thirsty = true
             var spawn

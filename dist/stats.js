@@ -18,6 +18,9 @@ function totalEnergy(room){
 }
 
 module.exports = {
+
+    totalEnergy: totalEnergy,
+
     stats: function(){
         for(var i in Game.rooms){
             var closestToExpire = 1500

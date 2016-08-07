@@ -100,6 +100,7 @@ module.exports.loop = function () {
         stats.stats()
     }
 
+    // Control turrets
     for(var name in Game.rooms){
         var room = Game.rooms[name]
         var towers = room.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}})
@@ -122,11 +123,33 @@ module.exports.loop = function () {
 
     roleHarvester.sortDistance()
 
+    var bodyCosts = {
+        [MOVE]: 50, [WORK]: 100, [CARRY]: 50, [ATTACK]: 80, [RANGED_ATTACK]: 150, [HEAL]: 250, [CLAIM]: 600, [TOUGH]: 10
+    }
+
+    function countBodyCost(creep, spawn){
+        var ret = 0
+        for(var i = 0; i < creep.body.length; i++)
+            ret += bodyCosts[creep.body[i].type]
+        return ret
+    }
+
+    // Spawn harvesters
     for(let key in Game.spawns){
         let spawn = Game.spawns[key]
-        var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
+        let harvesterCost = 0
+        let harvesterCount = 0
+        for(let i in Game.creeps){
+            if(Game.creeps[i].memory.role === 'harvester' && Game.creeps[i].room === spawn.room){
+                harvesterCost += countBodyCost(Game.creeps[i], spawn)
+                harvesterCount++
+            }
+        }
+        let energy = stats.totalEnergy(spawn.room)
+        spawn.room.energy = energy // cache stats for later use
+        //console.log('harvesterCost: ' + harvesterCost + ', energy: ' + energy[0] + '/' + energy[2])
 
-        if(harvesters.length < 2 + 1) {
+        if(harvesterCount < 3 && harvesterCost * 2 < energy[0] + energy[2]) {
             tryCreateCreep('harvester', 0, spawn)
         }
     }
@@ -166,13 +189,19 @@ module.exports.loop = function () {
         ])
     }
 
+    // Spawn builders
     for(let key in Game.spawns){
         let spawn = Game.spawns[key]
-        if(spawn !== 'Spawn1')
-            continue
-        var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && spawn.room === creep.room);
+        let builderCost = 0
+        let builderCount = 0
+        for(let i in Game.creeps){
+            if(Game.creeps[i].memory.role === 'builder' && Game.creeps[i].room === spawn.room){
+                builderCost += countBodyCost(Game.creeps[i], spawn)
+                builderCount++
+            }
+        }
 
-        if(builders.length < (2 + spawn.room.controller.level / 3)) {
+        if(builderCount < (2 + spawn.room.controller.level / 3) && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2]) {
             tryCreateCreep('builder', spawn.room.controller.level - 1, spawn)
         }
     }

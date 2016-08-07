@@ -38,6 +38,16 @@ function tryCreateCreep(role, priority, spawn){
     ], spawn)
 }
 
+function calcStoredEnergy(room){
+    var storedEnergy = 0, storedEnergyCapacity = 0
+    let containers = room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE})
+    for(let j = 0; j < containers.length; j++){
+        storedEnergy += containers[j].store.energy
+        storedEnergyCapacity += containers[j].storeCapacity
+    }
+    return [storedEnergy, storedEnergyCapacity]
+}
+
 function logStats(){
     var energy = 0, energyCapacity = 0
     var storedEnergy = 0, storedEnergyCapacity = 0
@@ -47,11 +57,9 @@ function logStats(){
         energy += r.energyAvailable
         energyCapacity += r.energyCapacityAvailable
 
-        let containers = r.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE})
-        for(let j = 0; j < containers.length; j++){
-            storedEnergy += containers[j].store.energy
-            storedEnergyCapacity += containers[j].storeCapacity
-        }
+        let stored = calcStoredEnergy(r)
+        storedEnergy += stored[0]
+        storedEnergyCapacity += stored[1]
 
         let sources = r.find(FIND_SOURCES)
         for(let j = 0; j < sources.length; j++)
@@ -182,17 +190,22 @@ module.exports.loop = function () {
         ])
     }
 
-    var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
-    var maxUpgraders = 3;
-    if(Memory.stats && 0 < Memory.stats.restingCreeps)
-        maxUpgraders += Memory.stats.restingCreeps;
-    if(1600 < Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1])
-        maxUpgraders += 1;
-    if(100000 < Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1])
-        maxUpgraders += 1;
+    for(let key in Game.spawns){
+        var spawn = Game.spawns[key]
+        var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role === 'upgrader' && creep.room === spawn.room);
+        var maxUpgraders = (spawn.room.controller.level + 1) / 2;
+        if(Memory.stats && 0 < Memory.stats.restingCreeps)
+            maxUpgraders += Memory.stats.restingCreeps;
+        let stored = calcStoredEnergy(spawn.room)
+        if(1600 < stored[0])
+            maxUpgraders += 1;
+        if(100000 < stored[0])
+            maxUpgraders += 1;
 
-    if(upgraders.length < maxUpgraders) {
-        tryCreateCreep('upgrader',4)
+        // console.log(upgraders.length + '/' + maxUpgraders)
+        if(upgraders.length < maxUpgraders) {
+            tryCreateCreep('upgrader',4,spawn)
+        }
     }
 
 

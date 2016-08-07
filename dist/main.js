@@ -4,6 +4,7 @@ var roleClaimer = require('role.claimer');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 var roleRanger = require('role.ranger');
+var roleTransporter = require('role.transporter');
 var stats = require('stats')
 
 function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
@@ -208,24 +209,32 @@ module.exports.loop = function () {
         }
     }
 
+    // Create transporters
+    if(Game.spawns.Spawn2){
+        let transporters = _.filter(Game.creeps, creep => creep.memory.role === 'transporter')
+        if(transporters.length < 3){
+            tryCreateCreepInt('transporter', 0, [
+                [WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
+                [WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
+                [WORK,CARRY,CARRY,MOVE,MOVE],
+            ], Game.spawns.Spawn2)
+        }
+    }
+
+    var roles = {
+        harvester: roleHarvester.run,
+        attacker: roleAttacker.run,
+        claimer: roleClaimer.run,
+        ranger: roleRanger.run,
+        transporter: roleTransporter.run,
+        upgrader: roleUpgrader.run,
+    }
 
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if(creep.memory.role == 'harvester') {
-            roleHarvester.run(creep);
-        }
-        if(creep.memory.role === 'attacker')
-            roleAttacker.run(creep)
-        if(creep.memory.role === 'claimer')
-            roleClaimer.run(creep)
-        if(creep.memory.role === 'ranger')
-            roleRanger.run(creep)
-        if(creep.memory.role == 'upgrader') {
-            roleUpgrader.run(creep);
-        }
-        if(creep.memory.role == 'builder') {
-            roleBuilder.run(creep);
-        }
+        var run = roles[creep.memory.role]
+        if(run)
+            run(creep)
     }
 
     logStats()

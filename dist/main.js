@@ -6,23 +6,25 @@ var roleBuilder = require('role.builder');
 var roleRanger = require('role.ranger');
 var stats = require('stats')
 
-function tryCreateCreepInt(role, priority, bodyCandidates){
+function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
+    spawn = spawn || Game.spawns.Spawn1
     var maxCandidate = bodyCandidates.length - (priority || 0)
     for(var i = 0; i < maxCandidate; i++){
         var body = bodyCandidates[i];
-        if(0 <= Game.spawns.Spawn1.canCreateCreep(body))
+        if(0 <= spawn.canCreateCreep(body))
             break;
     }
-    if(i === maxCandidate)
+    if(i === maxCandidate){
         return;
-    var newName = Game.spawns['Spawn1'].createCreep(body, undefined, {role: role});
+    }
+    var newName = spawn.createCreep(body, undefined, {role: role});
     var partsStr = ''
     for(var i = 0; i < body.length; i++)
         partsStr += body[i][0]
-    console.log('Spawning new ' + role + ': ' + partsStr + ', name: ' + newName);
+    console.log('[' + spawn.name + '] Spawning new ' + role + ': ' + partsStr + ', name: ' + newName);
 }
 
-function tryCreateCreep(role, priority){
+function tryCreateCreep(role, priority, spawn){
     return tryCreateCreepInt(role, priority, [
         [WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
         [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
@@ -33,7 +35,7 @@ function tryCreateCreep(role, priority){
         [WORK,WORK,CARRY,MOVE,MOVE],
         [WORK,CARRY,CARRY,MOVE,MOVE],
         [WORK,CARRY,MOVE]
-    ])
+    ], spawn)
 }
 
 function logStats(){
@@ -111,20 +113,13 @@ module.exports.loop = function () {
 
     roleHarvester.sortDistance()
 
-    var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
+    for(let key in Game.spawns){
+        let spawn = Game.spawns[key]
+        var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
 
-    if(harvesters.length < 2 + 1) {
-        tryCreateCreep('harvester')
-    }
-
-    var attackers = _.filter(Game.creeps, (creep) => creep.memory.role == 'attacker');
-    var maxAttackers = Math.min(3, Math.floor(Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1] / 5e4))
-
-    if(attackers.length < maxAttackers) {
-        tryCreateCreepInt('attacker', 0, [
-            [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
-            [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
-        ])
+        if(harvesters.length < 2 + 1) {
+            tryCreateCreep('harvester', 0, spawn)
+        }
     }
 
     // There's no siple way to obtain number of controllers under the player's control
@@ -136,6 +131,16 @@ module.exports.loop = function () {
         }
         return ret
     })()
+
+    var attackers = _.filter(Game.creeps, (creep) => creep.memory.role == 'attacker');
+    var maxAttackers = (controllers < 2) * Math.min(3, Math.floor(Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1] / 5e4))
+
+    if(attackers.length < maxAttackers) {
+        tryCreateCreepInt('attacker', 0, [
+            [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
+            [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
+        ])
+    }
 
     var claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
     // Let's stop generating claimers if maximum number of controllable rooms is reached.
@@ -152,20 +157,25 @@ module.exports.loop = function () {
         ])
     }
 
-    var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
+    for(let key in Game.spawns){
+        let spawn = Game.spawns[key]
+        if(spawn !== 'Spawn1')
+            continue
+        var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && spawn.room === creep.room);
 
-    if(builders.length < 3) {
-        tryCreateCreep('builder', Game.spawns.Spawn1.room.controller.level)
+        if(builders.length < (2 + spawn.room.controller.level / 3)) {
+            tryCreateCreep('builder', spawn.room.controller.level - 1, spawn)
+        }
     }
 
     var rangers = _.filter(Game.creeps, (creep) => creep.memory.role == 'ranger');
-    var maxRangers = 2;
+    var maxRangers = roleRanger.countSites();
 
     // If we see an enemy in the room, reinforce attack force.
     if(0 < Game.spawns.Spawn1.room.find(FIND_HOSTILE_CREEPS).length)
         maxRangers++
 
-    if(rangers.length < 2) {
+    if(rangers.length < maxRangers) {
         tryCreateCreepInt('ranger', 0, [
             [RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE],
             [RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE]

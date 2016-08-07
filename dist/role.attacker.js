@@ -82,14 +82,17 @@ var roleAttacker = {
             }
 
             var target
-            if(creep.memory.target && (target = Game.getObjectById(creep.memory.target))){
+            if(creep.room === Game.spawns.Spawn1.room && creep.carry.energy < creep.carryCapacity)
+                creep.memory.harvesting = true
+            else if(creep.memory.target && (target = Game.getObjectById(creep.memory.target))){
                 if(target instanceof ConstructionSite){
                     if(ERR_NOT_IN_RANGE === creep.build(target))
                         creep.moveTo(target)
                 }
                 else if(target instanceof StructureController){
-                    if(ERR_NOT_IN_RANGE === creep.upgradeController(target))
+                    if(ERR_NOT_IN_RANGE === creep.upgradeController(target)){
                         creep.moveTo(target)
+                    }
                 }
                 else if(target.hitsMax * 0.7 < target.hits)
                     creep.memory.target = null

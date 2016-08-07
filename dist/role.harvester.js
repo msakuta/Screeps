@@ -1,19 +1,21 @@
 
-var spawnCreeps = []
+var spawnCreeps = {}
 
 var roleHarvester = {
 
     sortDistance: function(){
-        var spawn = Game.spawns.Spawn1
-        spawnCreeps = _.filter(Game.creeps, (creep) => (creep.memory.role === 'harvester' || creep.memory.role === 'builder') && creep.room === spawn.room)
-        for(var i = 0; i < spawnCreeps.length; i++)
-            spawnCreeps[i].spawnDist = spawnCreeps[i].pos.getRangeTo(spawn)
-        spawnCreeps.sort((a,b) => a.spawnDist - b.spawnDist)
-        distArray = [];
-        for(let i = 0; i < spawnCreeps.length; i++)
-            distArray[i] = spawnCreeps[i].spawnDist
-        // Debug log
-        //console.log(distArray)
+        for(let k in Game.spawns){
+            let spawn = Game.spawns[k]
+            spawnCreeps[k] = _.filter(Game.creeps, (creep) => (creep.memory.role === 'harvester' || creep.memory.role === 'builder') && creep.room === spawn.room)
+            for(var i = 0; i < spawnCreeps[k].length; i++)
+                spawnCreeps[k][i].spawnDist = spawnCreeps[k][i].pos.getRangeTo(spawn)
+            spawnCreeps[k].sort((a,b) => a.spawnDist - b.spawnDist)
+            distArray = [];
+            for(let i = 0; i < spawnCreeps[k].length; i++)
+                distArray[i] = spawnCreeps[k][i].spawnDist
+            // Debug log
+            //console.log(distArray)
+        }
     },
 
     /** @param {Creep} creep **/
@@ -30,6 +32,16 @@ var roleHarvester = {
             return [energy, energyCapacity]
         }
 
+        /// Returns number of energy resource this creep could harvest in the same
+        /// duration of moving dist.
+        function totalPotentialHarvests(creep, dist){
+            var workParts = creep.getActiveBodyparts(WORK)
+            var harvestsPerTick = workParts * 2
+            // Debug log
+            //console.log('workParts: ' + workParts + ', totalPotentialHarvests: ' + totalPotentialHarvests)
+            return harvestsPerTick * dist
+        }
+
         if(creep.carry.energy === creep.carryCapacity)
             creep.memory.harvesting = undefined
 
@@ -40,7 +52,11 @@ var roleHarvester = {
             }
             var energies = totalEnergy()
             var thirsty = true
-            if(energies[0] < energies[1] && spawnCreeps.indexOf(creep) < 3){
+            var spawn
+            for(let k in Game.spawns)
+                if(Game.spawns[k] === creep.room)
+                    spawn = Game.spawns[k]
+            if(energies[0] < energies[1] && spawn && spawnCreeps[spawn].indexOf(creep) < 3){
                 var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy
                 });
@@ -54,7 +70,8 @@ var roleHarvester = {
             if(thirsty){
                 var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
                 var path = target ? creep.pos.findPathTo(target) : null
-                if(target && path && path.length){
+                // Go to dropped resource if a valid path is found to it and worth it
+                if(target && path && totalPotentialHarvests(creep, path.length) < target.amount){
                     creep.move(path[0].direction)
                     creep.pickup(target);
                 }
@@ -106,12 +123,7 @@ var roleHarvester = {
                     if(s.energy < s.energyCapacity * 0.7)
                         return true
                     var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
-                    var workParts = creep.getActiveBodyparts(WORK)
-                    var harvestsPerTick = workParts * 2
-                    var totalPotentialHarvests = harvestsPerTick * creep.pos.getRangeTo(s)
-                    // Debug log
-                    //console.log('fillableEnergy: ' + fillableEnergy + ', workParts: ' + workParts + ', totalPotentialHarvests: ' + totalPotentialHarvests)
-                    return totalPotentialHarvests < fillableEnergy}) &&
+                    return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&
                 !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity) &&
                 !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => s.store.energy < s.storeCapacity))
             {

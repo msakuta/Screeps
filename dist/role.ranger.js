@@ -1,9 +1,21 @@
+var flagNames = ['ranger', 'ranger2', 'ranger3']
+
 module.exports = {
+
+    countSites: function(){
+        var ret = 0
+        for(var i = 0; i < flagNames.length; i++){
+            if(flagNames[i] in Game.flags)
+                ret++
+        }
+        return ret
+    },
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        var enemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS)
+        var enemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: (s) => s.owner.username !== 'Artritus'})
         if(enemy){
+            console.log('!')
             if(ERR_NOT_IN_RANGE === creep.rangedAttack(enemy)){
                 if(creep.memory.flag && Game.flags[creep.memory.flag] && Game.flags[creep.memory.flag].pos === creep.pos && creep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_RAMPART}}).length)
                     ; // Don't move if it's on a rampart (although it's not always the best strategy)
@@ -11,7 +23,6 @@ module.exports = {
             }
         }
         else if(!creep.memory.flag){
-            var flagNames = ['ranger', 'ranger2']
             var flagWatchers = []
 
             for(let i = 0; i < flagNames.length; i++){

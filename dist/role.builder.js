@@ -51,12 +51,12 @@ function countTasks(task){
 var roleBuilder = {
 
     builderFilter: builderFilter,
-    
+
     findDamagedStructures: findDamagedStructures,
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        
+
         var deconstructingCreeps = countTasks('deconstruct')
 
         //console.log(creep.name + ': decon: ' + deconstructingCreeps + ' task: ' + creep.memory.task + ' en: ' + creep.carry.energy)
@@ -74,7 +74,7 @@ var roleBuilder = {
             else{
                 creep.memory.task = 'harvest'
                 creep.memory.target = undefined
-                creep.say('harvesting');
+                //creep.say('harvesting');
             }
         }
         else if(creep.memory.task !== 'build' && creep.carry.energy == creep.carryCapacity){

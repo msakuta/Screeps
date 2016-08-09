@@ -1,5 +1,6 @@
 var roleUpgrader = require('role.upgrader')
 var roleHarvester = require('role.harvester')
+var stats = require('stats')
 
 function builderFilter(s){
     var structHits = s.hitsMax
@@ -30,10 +31,14 @@ function towerBuilderFilter(s){
     else if(s.structureType === STRUCTURE_WALL){
         if(39 <= s.pos.x)
             return false
-        structHits = 100000
+        // The more energy in storage, the more expenses to the defense.
+        // It is reasonable to make investments be proportional to asset values.
+        // That said, the minimum value for strength should be more than zero
+        // if we don't have a container or a storage yet.
+        structHits = stats.totalEnergy(s.room)[2] + 10000
     }
     else if(s instanceof StructureRampart)
-        structHits = 100000
+        structHits = stats.totalEnergy(s.room)[2] + 10000
     return s.hits < s.hitsMax && s.hits < structHits
 }
 

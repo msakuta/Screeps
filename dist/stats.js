@@ -6,18 +6,38 @@
  * var mod = require('stats');
  * mod.thing == 'a thing'; // true
  */
-function totalEnergy(room){
-    var storedEnergy = 0, storedEnergyCapacity = 0
-    let containers = room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE})
-    for(let j = 0; j < containers.length; j++){
-        storedEnergy += containers[j].store.energy
-        storedEnergyCapacity += containers[j].storeCapacity
-    }
 
-    return [room.energyAvailable, room.energyCapacityAvailable, storedEnergy, storedEnergyCapacity]
+var totalEnergyCache = {}
+
+function resetCache(){
+    // Make sure previous ticks won't mess up things
+    totalEnergyCache = {}
+}
+
+function totalEnergy(room){
+    if(!totalEnergyCache[room.name]){
+        var storedEnergy = 0, storedEnergyCapacity = 0
+        let containers = room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE})
+        for(let j = 0; j < containers.length; j++){
+            storedEnergy += containers[j].store.energy
+            storedEnergyCapacity += containers[j].storeCapacity
+        }
+
+        // Automatically cache return value to private static variable to return
+        // for the second or later invocation of the function.
+        // I thought it works because the value does not change throughout the tick and
+        // all global variables except Memory are cleared at the end of each tick, but
+        // actually it's stored in a forked VM and somehow propagates among ticks.
+        // Apparently this behavior is unstable (probably due to multiple process
+        // sharing), so we cannot rely on it.
+        totalEnergyCache[room.name] = [room.energyAvailable, room.energyCapacityAvailable, storedEnergy, storedEnergyCapacity]
+    }
+    return totalEnergyCache[room.name]
 }
 
 module.exports = {
+
+    resetCache: resetCache,
 
     totalEnergy: totalEnergy,
 

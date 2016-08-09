@@ -95,9 +95,18 @@ module.exports.loop = function () {
         }
     }
 
+    stats.resetCache()
+
     // We need status report only infrequently
     if(Game.time % 10 === 0){
         stats.stats()
+        // Debug check for contents of total energy array cache
+/*        let ss = ''
+        for(let s in stats.totalEnergyCache){
+            if(s !== 'time')
+                ss += s + ' ' + stats.totalEnergyCache[s] + ', '
+        }
+        console.log('totalEnergyCache: ' + ss)*/
     }
 
     // Control turrets

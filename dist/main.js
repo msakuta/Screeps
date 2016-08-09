@@ -183,7 +183,9 @@ module.exports.loop = function () {
         spawn.room.energy = energy // cache stats for later use
         //console.log('harvesterCost: ' + harvesterCost + ', energy: ' + energy[0] + '/' + energy[2])
 
-        if(harvesterCount < 3 && harvesterCost * 2 < energy[0] + energy[2]) {
+        let sourceCount = spawn.room.find(FIND_SOURCES).length;
+
+        if(harvesterCount < sourceCount + 1 && harvesterCost * 2 < energy[0] + energy[2]) {
             tryCreateCreep('harvester', 0, spawn)
         }
     }
@@ -235,8 +237,8 @@ module.exports.loop = function () {
             }
         }
 
-        // You don't really need more than 3 builders
-        if(builderCount < (2 + (3 < spawn.room.controller.level)) && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2]) {
+        // You don't really need more than 2 builders
+        if(builderCount < (1 + (3 < spawn.room.controller.level)) && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2]) {
             tryCreateCreep('builder', spawn.room.controller.level - 1, spawn)
         }
     }

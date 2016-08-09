@@ -15,7 +15,7 @@ module.exports = {
     run: function(creep) {
         var enemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: (s) => s.owner.username !== 'Artritus'})
         if(enemy){
-            console.log('!')
+            creep.say('enemy!')
             if(ERR_NOT_IN_RANGE === creep.rangedAttack(enemy)){
                 if(creep.memory.flag && Game.flags[creep.memory.flag] && Game.flags[creep.memory.flag].pos === creep.pos && creep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_RAMPART}}).length)
                     ; // Don't move if it's on a rampart (although it's not always the best strategy)

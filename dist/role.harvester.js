@@ -6,7 +6,8 @@ var roleHarvester = {
     sortDistance: function(){
         for(let k in Game.spawns){
             let spawn = Game.spawns[k]
-            spawnCreeps[k] = _.filter(Game.creeps, (creep) => (creep.memory.role === 'harvester' || creep.memory.role === 'builder') && creep.room === spawn.room)
+            spawnCreeps[k] = _.filter(Game.creeps, (creep) => creep.room === spawn.room &&
+                (creep.memory.role === 'harvester' || creep.memory.role === 'builder' && creep.memory.task !== 'build'))
             for(var i = 0; i < spawnCreeps[k].length; i++)
                 spawnCreeps[k][i].spawnDist = spawnCreeps[k][i].pos.getRangeTo(spawn)
             spawnCreeps[k].sort((a,b) => a.spawnDist - b.spawnDist)
@@ -43,11 +44,11 @@ var roleHarvester = {
         }
 
         if(creep.carry.energy === creep.carryCapacity)
-            creep.memory.harvesting = undefined
+            creep.memory.task = undefined
 
-        if(creep.memory.harvesting || creep.carry.energy === 0) {
-            if(!creep.memory.harvesting){
-                creep.memory.harvesting = true
+        if(creep.memory.task === 'harvest' || creep.carry.energy === 0) {
+            if(creep.memory.task !== 'harvest'){
+                creep.memory.task = 'harvest'
                 creep.say('harvester')
             }
             let hostile = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {filter: s => !(s instanceof StructureController) && s.pos.getRangeTo(creep.pos) < 25})
@@ -178,7 +179,7 @@ var roleHarvester = {
                 //console.log(leastSpawn + ' ' + leastHarvesterCount)
                 if(leastSpawn)
                     creep.moveTo(leastSpawn)
-                creep.memory.harvesting = true
+                creep.memory.task = 'harvest'
 
                 // Temporarily disable the code to go to resting place since
                 // creeps in the other rooms than the location of rest flag

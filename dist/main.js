@@ -268,6 +268,10 @@ module.exports.loop = function () {
             maxUpgraders += 1;
         if(100000 < stored[0])
             maxUpgraders += 1;
+        console.log(spawn.room + ' ' + stats.countSourceAdjacents(spawn.room))
+        // Having too many upgraders in resource-scarce room is not a good plan.
+        //if(maxUpgraders < 1 + sources.length * 2)
+        //    maxUpgraders = 1 + sources.length * 2
 
         // console.log(upgraders.length + '/' + maxUpgraders)
         if(upgraders.length < maxUpgraders) {

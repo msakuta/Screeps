@@ -35,11 +35,32 @@ function totalEnergy(room){
     return totalEnergyCache[room.name]
 }
 
+function countSourceAdjacents(room){
+    let sources = room.find(FIND_SOURCES)
+    let sourceTiles = 0
+    for(let i = 0; i < sources.length; i++){
+        let source = sources[i]
+        for(let x = Math.max(0, source.pos.x-1); x <= Math.min(49, source.pos.x+1); x++){
+            for(let y = Math.max(0, source.pos.y-1); y <= Math.min(49, source.pos.y+1); y++){
+                if(x === source.pos.x && y === source.pos.y)
+                    continue
+                room.lookAt(x, y).forEach(s => {
+                    if(s.type === LOOK_TERRAIN && s[LOOK_TERRAIN] !== 'wall')
+                        sourceTiles++
+                })
+            }
+        }
+    }
+    return sourceTiles
+}
+
 module.exports = {
 
     resetCache: resetCache,
 
     totalEnergy: totalEnergy,
+
+    countSourceAdjacents: countSourceAdjacents,
 
     stats: function(){
         for(var i in Game.rooms){

@@ -102,16 +102,42 @@ var roleHarvester = {
                         }*/
                         //console.log(creep.name + ': ' + sources.length)
 
-                        // Find the closest source in this room.
-                        var source = creep.pos.findClosestByRange(FIND_SOURCES, {
+                        function sourcePredicate(s){
                             // Skip empty sources, but if it's nearing to regenration, it's worth approaching.
                             // This way, creeps won't waste time by wandering about while waiting regeneration.
                             // The rationale behind this number is that you can reach the other side of a room
                             // approximately within 50 ticks, provided that roads are properly layed out.
-                            filter: s => 0 < s.energy || s.ticksToRegeneration < 50
-                        });
-                        if(source && creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(source);
+                            return  (0 < s.energy || s.ticksToRegeneration < 50) &&
+                                // If there are enough harvesters gathering around this source, skip it.
+                                (source.harvesters || 0) < 2
+                        }
+
+                        // Find the closest source in this room.
+                        function findAndHarvest(){
+                            var source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: sourcePredicate})
+                            if(source){
+                                if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(source);
+                                    source.harvesters = (source.harvesters || 0) + 1;
+                                    return true
+                                }
+                            }
+                            return false
+                        }
+
+                        if(findAndHarvest())
+                        else if(Game.flags.extra !== undefined){
+                            let flagroom = Game.flags.extra.room
+                            if(flagroom === creep.room){
+                                findAndHarvest()
+                            }
+                            else{
+                                let exit = creep.room.findExitTo(flagroom)
+                                if(0 <= exit){
+                                    let expos = creep.pos.findClosestByRange(exit)
+                                    creep.moveTo()
+                                }
+                            }
                         }
                     }
                 }

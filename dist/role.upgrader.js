@@ -7,6 +7,7 @@ var roleUpgrader = {
 
         if(creep.memory.task !== 'harvest' && creep.carry.energy === 0) {
             creep.memory.task = 'harvest';
+            creep.memory.spawn = undefined; // Forget about previous spawn in order to opitmize efficiency
             creep.say('harvesting');
         }
         if(creep.memory.task !== 'upgrade' && creep.carry.energy === creep.carryCapacity) {
@@ -21,15 +22,24 @@ var roleUpgrader = {
                     creep.moveTo(creep.room.controller);
                 }
             }
+            else if(creep.memory.spawn){
+                creep.moveTo(Game.getObjectById(creep.memory.spawn))
+            }
             else{
+                let bestSpawn = null
+                let leastControllerCount = 10
                 for(let s in Game.spawns){
                     let spawn = Game.spawns[s]
                     let controllerCount = _.filter(Game.creeps, c => c.room === spawn.room && c.memory.role === 'upgrader').length
-                    //console.log('upg: ' + spawn + ' ' + controllerCount)
-                    if(controllerCount < 4){
-                        creep.moveTo(spawn)
-                        break
+                    console.log('upg: ' + spawn.name + ' ' + controllerCount)
+                    if(controllerCount < leastControllerCount){
+                        leastControllerCount = controllerCount
+                        bestSpawn = spawn
                     }
+                }
+                if(leastControllerCount){
+                    creep.moveTo(bestSpawn)
+                    creep.memory.spawn = bestSpawn.id
                 }
             }
         }

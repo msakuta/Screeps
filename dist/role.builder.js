@@ -83,7 +83,7 @@ var roleBuilder = {
             }
         }
         else if(creep.memory.task !== 'build' && creep.carry.energy == creep.carryCapacity){
-            var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+            var targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
             var targets2 = creep.room.find(FIND_STRUCTURES, {filter: builderFilter});
             if(targets.length || targets2.length) {
                 creep.memory.task = 'build';
@@ -125,7 +125,7 @@ var roleBuilder = {
                         creep.memory.target = target.id
                     }
                     else{
-                        var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+                        var targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
                         if(targets.length) {
                             creep.memory.target = targets[0].id
                         }

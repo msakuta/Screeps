@@ -1,43 +1,97 @@
+var roleHarvester = require('role.harvester')
+
 var roleUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
 
-        if(creep.memory.upgrading && creep.carry.energy == 0) {
-            creep.memory.upgrading = false;
+        if(creep.memory.task !== 'harvest' && creep.carry.energy === 0) {
+            creep.memory.task = 'harvest';
             creep.say('harvesting');
         }
-        if(!creep.memory.upgrading && creep.carry.energy == creep.carryCapacity) {
-            creep.memory.upgrading = true;
+        if(creep.memory.task !== 'upgrade' && creep.carry.energy === creep.carryCapacity) {
+            creep.memory.task = 'upgrade';
+            creep.memory.target = undefined
             creep.say('upgrading');
         }
 
-        if(creep.memory.upgrading) {
-            if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(creep.room.controller);
+        if(creep.memory.task === 'upgrade') {
+            if(creep.room.controller && creep.room.controller.my){
+                if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(creep.room.controller);
+                }
+            }
+            else{
+                for(let s in Game.spawns){
+                    let spawn = Game.spawns[s]
+                    let controllerCount = _.filter(Game.creeps, c => c.room === spawn.room && c.memory.role === 'upgrader').length
+                    //console.log('upg: ' + spawn + ' ' + controllerCount)
+                    if(controllerCount < 4){
+                        creep.moveTo(spawn)
+                        break
+                    }
+                }
             }
         }
-        else {
+        else{
             var targets = creep.room.find(FIND_DROPPED_RESOURCES);
             if(targets.length && false) {
                 creep.moveTo(targets[0]);
                 creep.pickup(targets[0]);
+                creep.memory.target = undefined
+            }
+            else if(creep.memory.target){
+                var source = Game.getObjectById(creep.memory.target)
+                if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(source);
+                }
             }
             else{
-                var source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => 0 < s.energy});
+                var source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: roleHarvester.sourcePredicate});
                 if(source){
-                    if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                    if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
                         creep.moveTo(source);
                     }
+                    creep.memory.target = source.id
+/*                    if(!srouce.harvesters)
+                        source.harvesters = [creep]
+                    else{
+                        source.harvesters.push(creep)
+                        source.harvesters.sort((a,b) => a.getRangeTo(source) < b.getRangeTo(source))*/
+//                        if(2 < source.harvesters.length)
+//                            source.harvesters.splice(2, source.harvesters.length - 2)
+//                    }
+                }
+                else if(Game.flags.extra !== undefined){
+                    creep.moveTo(Game.flags.extra)
+                    creep.memory.target = undefined
+                }
+            }
+
+            if(!creep.memory.target){
+                // If all sources are depleted and there is excess energy in the storage, withdraw from it
+                var storage = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {filter: s => s.structureType === STRUCTURE_STORAGE && 50000 < s.store.energy})
+                if(storage && creep.withdraw(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
+                    creep.moveTo(storage);
+                else if(0 < creep.carry.energy){ // If everything fails and still has energy, pour it into the controller before die
+                    creep.memory.task = 'upgrade'
                 }
                 else{
-                    // If all sources are depleted and there is excess energy in the storage, withdraw from it
-                    var storage = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {filter: s => s.structureType === STRUCTURE_STORAGE && 50000 < s.store.energy})
-                    if(storage && creep.withdraw(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
-                        creep.moveTo(storage);
-                    else if(0 < creep.carry.energy) // If everything fails and still has energy, pour it into the controller before die
-                        creep.memory.upgrading = true
+                    // If this creep cannot allot the right to harvest a source, get out of the way
+                    // for other creeps.
+                    var source = creep.pos.findClosestByRange(FIND_SOURCES)
+                    var sourceRange = creep.pos.getRangeTo(source)
+                    if(sourceRange <= 2){
+                        let awayPath = PathFinder.search(creep.pos, {pos: source.pos, range: 3}, {flee: true}).path
+                        //console.log(awayPath)
+                        if(awayPath.length)
+                            creep.moveTo(awayPath[awayPath.length-1])
+                    }
+                    else if(4 < sourceRange){
+                        creep.moveTo(source)
+                    }
                 }
+                creep.memory.target = undefined
             }
         }
 	}

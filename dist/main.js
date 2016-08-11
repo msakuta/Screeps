@@ -213,7 +213,7 @@ module.exports.loop = function () {
     var claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
     // Let's stop generating claimers if maximum number of controllable rooms is reached.
     // Technically it may have benefit because claimers can also reserve, but we'll ignore it for now.
-    var maxClaimers = controllers === Game.gcl.level ? 0 : Math.min(2, Math.floor(Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1] / 5e4))
+    var maxClaimers = controllers === Game.gcl.level ? 1 : Math.min(2, Math.floor(Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1] / 5e4))
 
     // Debug output
     //console.log('controllers: ' + controllers + ', gcl: ' + Game.gcl.level + ', maxClaimers: ' + maxClaimers)
@@ -302,6 +302,16 @@ module.exports.loop = function () {
         var run = roles[creep.memory.role]
         if(run)
             run(creep)
+    }
+
+    for(let r in Game.rooms){
+        let room = Game.rooms[r]
+        let sources = room.find(FIND_SOURCES)
+        for(let s in sources){
+            let source = sources[s]
+            if(source.harvesters)
+                console.log(room.name + ': ' + source.pos.x + ', ' + source.pos.y + ': ' + source.harvesters)
+        }
     }
 
     logStats()

@@ -226,7 +226,8 @@ module.exports.loop = function () {
     if(claimers.length < maxClaimers) {
         tryCreateCreepInt('claimer', 0, [
             [CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,MOVE,MOVE],
-            [CLAIM,MOVE,MOVE],
+            [CLAIM,CLAIM,MOVE,MOVE],
+            [CLAIM,MOVE],
         ])
     }
 

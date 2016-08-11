@@ -168,7 +168,12 @@ module.exports.loop = function () {
         return ret
     }
 
+    var spawnCount = 0
+    for(let key in Game.spawns)
+        spawnCount++
+
     // Spawn harvesters
+    var totalHarvesterCount = _.filter(Game.creeps, c => c.memory.role === 'harvester').length
     for(let key in Game.spawns){
         let spawn = Game.spawns[key]
         let harvesterCost = 0
@@ -185,7 +190,7 @@ module.exports.loop = function () {
 
         let sourceCount = spawn.room.find(FIND_SOURCES).length;
 
-        if(harvesterCount < sourceCount + 1 && harvesterCost * 2 < energy[0] + energy[2]) {
+        if(harvesterCount < sourceCount + 1 && harvesterCost * 2 < energy[0] + energy[2] && totalHarvesterCount < spawnCount * (sourceCount + 1)) {
             tryCreateCreep('harvester', 0, spawn)
         }
     }
@@ -226,6 +231,7 @@ module.exports.loop = function () {
     }
 
     // Spawn builders
+    var totalBuilderCount = _.filter(Game.creeps, c => c.memory.role === 'builder').length
     for(let key in Game.spawns){
         let spawn = Game.spawns[key]
         let builderCost = 0
@@ -238,7 +244,8 @@ module.exports.loop = function () {
         }
 
         // You don't really need more than 2 builders
-        if(builderCount < (1 + (3 < spawn.room.controller.level)) && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2]) {
+        let creepsPerSpawn = (1 + (3 < spawn.room.controller.level))
+        if(builderCount < creepsPerSpawn && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2] && totalBuilderCount < spawnCount * creepsPerSpawn) {
             tryCreateCreep('builder', spawn.room.controller.level - 1, spawn)
         }
     }
@@ -257,6 +264,8 @@ module.exports.loop = function () {
         ])
     }
 
+    // Spawn upgraders
+    var totalUpgraders = _.filter(Game.creeps, (creep) => creep.memory.role === 'upgrader').length
     for(let key in Game.spawns){
         var spawn = Game.spawns[key]
         var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role === 'upgrader' && creep.room === spawn.room);
@@ -270,7 +279,7 @@ module.exports.loop = function () {
             maxUpgraders += 1;
 
         // console.log(upgraders.length + '/' + maxUpgraders)
-        if(upgraders.length < maxUpgraders) {
+        if(upgraders.length < maxUpgraders && totalUpgraders < spawnCount * maxUpgraders) {
             tryCreateCreep('upgrader',4,spawn)
         }
     }

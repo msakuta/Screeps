@@ -246,7 +246,7 @@ module.exports.loop = function () {
 
         // You don't really need more than 2 builders
         let creepsPerSpawn = (1 + (3 < spawn.room.controller.level))
-        if(builderCount < creepsPerSpawn && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2] && totalBuilderCount < spawnCount * creepsPerSpawn) {
+        if(builderCount < creepsPerSpawn && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2] && totalBuilderCount < spawnCount * creepsPerSpawn * 1.5) {
             tryCreateCreep('builder', spawn.room.controller.level - 1, spawn)
         }
     }
@@ -280,7 +280,7 @@ module.exports.loop = function () {
             maxUpgraders += 1;
 
         // console.log(upgraders.length + '/' + maxUpgraders)
-        if(upgraders.length < maxUpgraders && totalUpgraders < spawnCount * maxUpgraders) {
+        if(upgraders.length < maxUpgraders && totalUpgraders < spawnCount * maxUpgraders * 1.5) {
             tryCreateCreep('upgrader',4,spawn)
         }
     }

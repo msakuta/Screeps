@@ -83,6 +83,15 @@ module.exports = {
             }
         }
         else if(creep.memory.task === 'store'){
+            function linkSpace(source){
+                var ret = source.energyCapacity - source.energy
+                var sink = creep.room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_LINK && s.sink})
+                if(sink.length)
+                    ret += sink[0].energyCapacity - sink[0].energy
+                //console.log('linkspace: ' + ret + ' ' + creep.carry.energy)
+                return ret
+            }
+
             if(creep.carry.energy === 0){
                 creep.memory.task = 'gather'
             }
@@ -96,7 +105,8 @@ module.exports = {
                             // We need at least 100 space in order to transport energy to a link
                             // because it would be so inefficient unless we do.
                             (s.structureType === STRUCTURE_LINK && s.source &&
-                            s.energy + Math.min(creep.carry.energy, 100) < s.energyCapacity)
+                            Math.min(creep.carry.energy, 100) < s.energyCapacity - s.energy &&
+                            creep.carry.energy < linkSpace(s))
                     })
                     let amount = creep.carry.energy
                     if(creep.transfer(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE){

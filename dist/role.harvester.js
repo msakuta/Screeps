@@ -87,7 +87,19 @@ var roleHarvester = {
             creep.memory.target = undefined
         }
 
-        if(creep.memory.task === 'harvest' || _.sum(creep.carry) === 0) {
+        // Recycle damaged creeps
+        if(creep.hits < creep.hitsMax){
+            let target = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_SPAWN}})
+            if(target){
+                if(ERR_NOT_IN_RANGE === target.recycleCreep(creep))
+                    creep.moveTo(target)
+            }
+            else if(Game.spawns.Spawn2)
+                creep.moveTo(Game.spawns.Spawn2)
+            else
+                creep.moveTo(Game.spawns.Spawn1)
+        }
+        else if(creep.memory.task === 'harvest' || _.sum(creep.carry) === 0) {
             if(!creep.memory.target){
                 // If this creep has resources other than energy, store it to a
                 // storage before continuing because its capacity will be mixed.
@@ -161,8 +173,8 @@ var roleHarvester = {
                     var path = target ? creep.pos.findPathTo(target) : null
                     // Go to dropped resource if a valid path is found to it and worth it
                     if(target && path && path.length && totalPotentialHarvests(creep, path.length) < target.amount){
-                        creep.move(path[0].direction)
-                        creep.pickup(target);
+                        if(ERR_NOT_IN_RANGE === creep.pickup(target))
+                            creep.move(path[0].direction)
                     }
                     else if(!creep.room.controller || creep.room.controller.my || !creep.room.controller.owner){
                         var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {

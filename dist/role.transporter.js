@@ -4,7 +4,19 @@ module.exports = {
     /** @param {Creep} creep **/
     run: function(creep) {
 
-        if(creep.memory.task === 'gather'){
+        // Recycle damaged creeps
+        if(creep.hits < creep.hitsMax){
+            let target = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_SPAWN}})
+            if(target){
+                if(ERR_NOT_IN_RANGE === target.recycleCreep(creep))
+                    creep.moveTo(target)
+            }
+            else if(Game.spawns.Spawn2)
+                creep.moveTo(Game.spawns.Spawn2)
+            else
+                creep.moveTo(Game.spawns.Spawn1)
+        }
+        else if(creep.memory.task === 'gather'){
             if(creep.carry.energy === creep.carryCapacity){
                 creep.memory.task = 'transport'
                 return

@@ -8,6 +8,17 @@ var roleRanger = require('role.ranger');
 var roleTransporter = require('role.transporter');
 var stats = require('stats')
 
+var bodyCosts = {
+    [MOVE]: 50, [WORK]: 100, [CARRY]: 50, [ATTACK]: 80, [RANGED_ATTACK]: 150, [HEAL]: 250, [CLAIM]: 600, [TOUGH]: 10
+}
+
+function countBodyCost(creep){
+    var ret = 0
+    for(var i = 0; i < creep.body.length; i++)
+        ret += bodyCosts[creep.body[i].type]
+    return ret
+}
+
 function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
     spawn = spawn || Game.spawns.Spawn1
     var maxCandidate = bodyCandidates.length - (priority || 0)
@@ -24,6 +35,9 @@ function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
     for(var i = 0; i < body.length; i++)
         partsStr += body[i][0]
     console.log('[' + spawn.name + '] Spawning new ' + role + ': ' + partsStr + ', name: ' + newName);
+    if(!Memory.spent)
+        Memory.spent = {}
+    Memory.spent[role] = (Memory.spent[role] || 0) + countBodyCost(Game.creeps[newName])
     return true
 }
 
@@ -164,17 +178,6 @@ module.exports.loop = function () {
 
     roleHarvester.sortDistance()
 
-    var bodyCosts = {
-        [MOVE]: 50, [WORK]: 100, [CARRY]: 50, [ATTACK]: 80, [RANGED_ATTACK]: 150, [HEAL]: 250, [CLAIM]: 600, [TOUGH]: 10
-    }
-
-    function countBodyCost(creep, spawn){
-        var ret = 0
-        for(var i = 0; i < creep.body.length; i++)
-            ret += bodyCosts[creep.body[i].type]
-        return ret
-    }
-
     var spawnCount = 0
     for(let key in Game.spawns)
         spawnCount++
@@ -187,7 +190,7 @@ module.exports.loop = function () {
         let harvesterCount = 0
         for(let i in Game.creeps){
             if(Game.creeps[i].memory.role === 'harvester' && Game.creeps[i].room === spawn.room){
-                harvesterCost += countBodyCost(Game.creeps[i], spawn)
+                harvesterCost += countBodyCost(Game.creeps[i])
                 harvesterCount++
             }
         }
@@ -246,7 +249,7 @@ module.exports.loop = function () {
         let builderCount = 0
         for(let i in Game.creeps){
             if(Game.creeps[i].memory.role === 'builder' && Game.creeps[i].room === spawn.room){
-                builderCost += countBodyCost(Game.creeps[i], spawn)
+                builderCost += countBodyCost(Game.creeps[i])
                 builderCount++
             }
         }

@@ -98,9 +98,12 @@ module.exports = {
                             (s.structureType === STRUCTURE_LINK && s.source &&
                             s.energy + Math.min(creep.carry.energy, 100) < s.energyCapacity)
                     })
+                    let amount = creep.carry.energy
                     if(creep.transfer(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE){
                         creep.moveTo(container)
                     }
+                    else
+                        Memory.transportedEnergy = (Memory.transportedEnergy || 0) + amount
                 }
                 else{
                     creep.moveTo(toSpawn)

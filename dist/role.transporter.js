@@ -49,30 +49,31 @@ module.exports = {
                             creep.move(path[0].direction)
                         roomGathering = true
                     }
+                    let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        filter: s => (s.structureType === STRUCTURE_CONTAINER ||
+                            s.structureType === STRUCTURE_STORAGE) &&
+                            0 < s.store.energy && s.room === creep.room
+                    })
+                    // Pick up dropped resources and withdraw from adjacent container
+                    // simultaneously, but precede resource by not issueing withdraw
+                    // order if resource amount is more than available space.
+                    if(container && (!resource || resource.amount < creep.carryCapacity - creep.carry.energy && creep.pos.getRangeTo(container) <= 2)){
+                        if(creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
+                            creep.moveTo(container)
+                        roomGathering = true
+                    }
                     else{
-                        let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                            filter: s => (s.structureType === STRUCTURE_CONTAINER ||
-                                s.structureType === STRUCTURE_STORAGE) &&
-                                0 < s.store.energy && s.room === creep.room
-                        })
-                        if(container){
-                            if(creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
-                                creep.moveTo(container)
-                            roomGathering = true
-                        }
-                        else{
-                            let source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => s.room === creep.room})
-                            if(source){
-                                if(creep.pos.getRangeTo(source) <= 2){
-                                    let awayPath = PathFinder.search(creep.pos, {pos: source.pos, range: 3}, {flee: true}).path
-                                    //console.log(awayPath)
-                                    if(awayPath.length)
-                                        creep.moveTo(awayPath[awayPath.length-1])
-                                }
-    //                            if(creep.harvest(source) === ERR_NOT_IN_RANGE){
-    //                                creep.moveTo(source)
-    //                            }
+                        let source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => s.room === creep.room})
+                        if(source){
+                            if(creep.pos.getRangeTo(source) <= 2){
+                                let awayPath = PathFinder.search(creep.pos, {pos: source.pos, range: 3}, {flee: true}).path
+                                //console.log(awayPath)
+                                if(awayPath.length)
+                                    creep.moveTo(awayPath[awayPath.length-1])
                             }
+//                            if(creep.harvest(source) === ERR_NOT_IN_RANGE){
+//                                creep.moveTo(source)
+//                            }
                         }
                     }
                 }
@@ -92,8 +93,10 @@ module.exports = {
                         filter: s => (s.structureType === STRUCTURE_CONTAINER ||
                             s.structureType === STRUCTURE_STORAGE) &&
                             s.store.energy < s.storeCapacity ||
+                            // We need at least 100 space in order to transport energy to a link
+                            // because it would be so inefficient unless we do.
                             (s.structureType === STRUCTURE_LINK && s.source &&
-                            s.energy < s.energyCapacity)
+                            s.energy + Math.min(creep.carry.energy, 100) < s.energyCapacity)
                     })
                     if(creep.transfer(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE){
                         creep.moveTo(container)

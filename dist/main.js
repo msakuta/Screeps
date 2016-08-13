@@ -149,7 +149,10 @@ module.exports.loop = function () {
                 // Cache sink and source flags to use for harvesters
                 links[0].sink = true
                 for(let j = 1; j < links.length; j++){
-                    links[j].transferEnergy(links[0])
+                    // We need at least 100 space in order to transport to the sink
+                    // because it would be so inefficient unless we do.
+                    if(links[0].energy + Math.min(links[j].energy, 100) < links[0].energyCapacity)
+                        links[j].transferEnergy(links[0])
                     links[j].source = true
                 }
                 //console.log('links sink: ' + links[0] + ', source: ' + links[1])

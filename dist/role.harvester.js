@@ -82,13 +82,21 @@ var roleHarvester = {
             return harvestsPerTick * dist
         }
 
-        if(creep.carry.energy === creep.carryCapacity){
+        if(_.sum(creep.carry) === creep.carryCapacity){
             creep.memory.task = undefined
             creep.memory.target = undefined
         }
 
-        if(creep.memory.task === 'harvest' || creep.carry.energy === 0) {
+        if(creep.memory.task === 'harvest' || _.sum(creep.carry) === 0) {
             if(!creep.memory.target){
+                // If this creep has resources other than energy, store it to a
+                // storage before continuing because its capacity will be mixed.
+                for(let res in creep.carry){
+                    if(res !== RESOURCE_ENERGY){
+                        creep.memory.task = 'store'
+                        return
+                    }
+                }
                 if(creep.memory.task !== 'harvest'){
                     creep.memory.task = 'harvest'
                     creep.say('harvester')
@@ -120,6 +128,35 @@ var roleHarvester = {
                     }
     	        }
                 if(thirsty){
+                    function harvest(source){
+                        if(!source)
+                            return false
+                        if(source instanceof Source){
+                            if(source.energy === 0){
+                                creep.memory.target = undefined
+                                return false
+                            }
+                        }
+                        else if(source instanceof Mineral){
+                            if(source.mineralAmount === 0){
+                                creep.memory.target = undefined
+                                return false
+                            }
+                        }
+                        if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                            creep.moveTo(source);
+                            creep.memory.target = source.id
+                            //console.log(source.id + ' Adj: ' + countAdjacentSquares(source.pos,
+                            //    s2 => s2.type === LOOK_TERRAIN && s2[LOOK_TERRAIN] !== 'wall'))
+/*                                        if(!Memory.sources)
+                                Memory.sources = {source.id: [creep.name]}
+                            let sourceMem = Memory.sources[source.id]
+                            if(sourceMem.indexOf(creep.name) < 0)
+                                sourceMem.push(creep.name)*/
+                        }
+                        return true
+                    }
+
                     var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
                     var path = target ? creep.pos.findPathTo(target) : null
                     // Go to dropped resource if a valid path is found to it and worth it
@@ -136,7 +173,7 @@ var roleHarvester = {
                             if(creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
                                 creep.moveTo(target);
                         }
-                        else{
+                        else if(!creep.memory.target || !harvest(Game.getObjectById(creep.memory.target))){
                             var sources = []
                             // We can't find the closest source among multiple rooms.
         /*                    for(let k in Game.spawns){
@@ -148,27 +185,20 @@ var roleHarvester = {
 
                             // Find the closest source in this room.
                             function findAndHarvest(){
-                                var source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: sourcePredicate})
-                                if(source){
-                                    if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
-                                        creep.moveTo(source);
-                                        creep.memory.target = source.id
-                                        //console.log(source.id + ' Adj: ' + countAdjacentSquares(source.pos,
-                                        //    s2 => s2.type === LOOK_TERRAIN && s2[LOOK_TERRAIN] !== 'wall'))
-/*                                        if(!Memory.sources)
-                                            Memory.sources = {source.id: [creep.name]}
-                                        let sourceMem = Memory.sources[source.id]
-                                        if(sourceMem.indexOf(creep.name) < 0)
-                                            sourceMem.push(creep.name)*/
-                                        return true
-                                    }
-                                    return true
-                                }
-                                return false
+                                return harvest(creep.pos.findClosestByRange(FIND_SOURCES, {filter: sourcePredicate}))
+                            }
+
+                            function mineralFilter(s){
+                                if(s.mineralAmount === 0)
+                                    return false
+                                var extractor = _.filter(s.room.lookAt(s), s => s.type === 'structure' && s.structure.structureType === STRUCTURE_EXTRACTOR)
+                                //if(extractor.length === 1)
+                                //    console.log('extractor on mineral ' + s + ': ' + extractor.length)
+                                return extractor.length === 1
                             }
 
                             if(findAndHarvest());
-                            else{
+                            else if(!harvest(creep.pos.findClosestByRange(FIND_MINERALS, {filter: mineralFilter}))){
 
                                 if(Game.flags.extra !== undefined){
                                     creep.moveTo(Game.flags.extra)
@@ -219,6 +249,10 @@ var roleHarvester = {
                     if(creep.harvest(target) === ERR_NOT_IN_RANGE)
                         creep.moveTo(target);
                 }
+                else if(target instanceof Mineral && 0 < target.mineralAmount){
+                    if(creep.harvest(target) === ERR_NOT_IN_RANGE)
+                        creep.moveTo(target);
+                }
                 else{
                     console.log('NO source target! ' + target)
                     creep.memory.target = undefined
@@ -238,8 +272,11 @@ var roleHarvester = {
                     }
                 })
                 if(target){
-                    if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(target);
+                    // Dump all types of resources
+                    for(let res in creep.carry){
+                        if(creep.transfer(target, res) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(target);
+                        }
                     }
                     creep.memory.resting = undefined
                     //creep.say('fill ' + target.structureType)
@@ -248,58 +285,78 @@ var roleHarvester = {
                 return false
             }
 
-            // Precede filling tower, then extension and spawn, lastly container and storage.
-            if(!tryFindTarget([STRUCTURE_TOWER], s => {
-                    // Tower tend to spend tiny amount of energy from time to time for repairing
-                    // roads and containers, so don't spend time for filling tiny amount of energy.
-                    // Specifically, if this creep can harvest more than the energy amount it could
-                    // transfer to the tower in the same duration of moving to the tower, it's not
-                    // worth transferring (spending time for harvesting is more beneficial).
-                    // That said, if the tower is getting short in energy, we can't help but restoring it.
-                    if(s.energy < s.energyCapacity * 0.7)
-                        return true
-                    var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
-                    return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&
-                !tryFindTarget([STRUCTURE_LINK], s => {
-                    if(!s.source || !(s.energy < s.energyCapacity) || 3 < creep.pos.getRangeTo(s))
-                        return false
-                    var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
-                    return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&
-                !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity) &&
-                (!creep.room.controller || !creep.room.controller.my ||
-                    !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => s.store.energy < s.storeCapacity)))
-            {
-                // If there's nothing to do, find a room with least working force
-                // and visit it as a helping hand.
-                // Technically, the least working force does not necessarily meaning
-                // the highest demand, but it's simple and effective approximation.
-                var leastSpawn = null
-                var leastHarvesterCount = 10
-                for(let k in Game.spawns){
-                    let spawn = Game.spawns[k]
-                    if(spawn.my){
-                        let harvesterCount = _.filter(Game.creeps, c => c.room === spawn.room && c.memory.role === 'harvester').length
-                        if(harvesterCount < leastHarvesterCount){
-                            leastHarvesterCount = harvesterCount
-                            leastSpawn = spawn
+            //console.log('creep ' + creep.name + ' storing: ' + creep.memory.task)
+
+            let nonEnergy = false
+            for(let name in creep.carry){
+                if(name !== RESOURCE_ENERGY){
+                    nonEnergy = true
+                    break
+                }
+            }
+
+            if(nonEnergy){
+                // Always store minerals into a storage
+                tryFindTarget([STRUCTURE_STORAGE], s => _.sum(s.store) < s.storeCapacity)
+            }
+            else if(0 < creep.carry.energy){
+
+                // Precede filling tower, then extension and spawn, lastly container and storage.
+                if(!tryFindTarget([STRUCTURE_TOWER], s => {
+                        // Tower tend to spend tiny amount of energy from time to time for repairing
+                        // roads and containers, so don't spend time for filling tiny amount of energy.
+                        // Specifically, if this creep can harvest more than the energy amount it could
+                        // transfer to the tower in the same duration of moving to the tower, it's not
+                        // worth transferring (spending time for harvesting is more beneficial).
+                        // That said, if the tower is getting short in energy, we can't help but restoring it.
+                        if(s.energy < s.energyCapacity * 0.7)
+                            return true
+                        var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
+                        return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&
+                    !tryFindTarget([STRUCTURE_LINK], s => {
+                        if(!s.source || !(s.energy < s.energyCapacity) || 3 < creep.pos.getRangeTo(s))
+                            return false
+                        var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
+                        return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&
+                    !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity) &&
+                    (!creep.room.controller || !creep.room.controller.my ||
+                        !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => _.sum(s.store) < s.storeCapacity)))
+                {
+                    // If there's nothing to do, find a room with least working force
+                    // and visit it as a helping hand.
+                    // Technically, the least working force does not necessarily meaning
+                    // the highest demand, but it's simple and effective approximation.
+                    var leastSpawn = null
+                    var leastHarvesterCount = 10
+                    for(let k in Game.spawns){
+                        let spawn = Game.spawns[k]
+                        if(spawn.my){
+                            let harvesterCount = _.filter(Game.creeps, c => c.room === spawn.room && c.memory.role === 'harvester').length
+                            if(harvesterCount < leastHarvesterCount){
+                                leastHarvesterCount = harvesterCount
+                                leastSpawn = spawn
+                            }
                         }
                     }
-                }
-                //console.log(leastSpawn + ' ' + leastHarvesterCount)
-                if(leastSpawn)
-                    creep.moveTo(leastSpawn)
-                creep.memory.task = 'harvest'
+                    //console.log(leastSpawn + ' ' + leastHarvesterCount)
+                    if(leastSpawn)
+                        creep.moveTo(leastSpawn)
+                    creep.memory.task = 'harvest'
 
-                // Temporarily disable the code to go to resting place since
-                // creeps in the other rooms than the location of rest flag
-                // rush to the flag.
-/*                var flag = Game.flags['rest']
-                if(flag && !flag.pos.isNearTo(creep.pos))
-                    creep.moveTo(flag)
-                else if(!creep.memory.resting){
-                    creep.say('at flag')
-                    creep.memory.resting = true
-                }*/
+                    // Temporarily disable the code to go to resting place since
+                    // creeps in the other rooms than the location of rest flag
+                    // rush to the flag.
+    /*                var flag = Game.flags['rest']
+                    if(flag && !flag.pos.isNearTo(creep.pos))
+                        creep.moveTo(flag)
+                    else if(!creep.memory.resting){
+                        creep.say('at flag')
+                        creep.memory.resting = true
+                    }*/
+                }
+            }
+            else{
+                creep.memory.task = undefined
             }
         }
     }

@@ -71,7 +71,7 @@ var roleBuilder = {
             deconstructingCreeps--
         }
 
-        if(creep.carry.energy == 0) {
+        if(_.sum(creep.carry) === 0) {
             if(deconstructingCreeps < 1 && Game.flags.norepair && 0 < creep.room.find(FIND_STRUCTURES, {filter: s => s.pos.isEqualTo(Game.flags.norepair)}).length){
                 creep.memory.task = 'deconstruct'
                 creep.say('deconstructing');
@@ -82,7 +82,7 @@ var roleBuilder = {
                 //creep.say('harvesting');
             }
         }
-        else if(creep.memory.task !== 'build' && creep.carry.energy == creep.carryCapacity){
+        else if(creep.memory.task !== 'build' && _.sum(creep.carry) === creep.carryCapacity){
             var targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
             var targets2 = creep.room.find(FIND_STRUCTURES, {filter: builderFilter});
             if(targets.length || targets2.length) {

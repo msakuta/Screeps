@@ -208,6 +208,12 @@ var roleHarvester = {
                 }
             }
             else{
+                // If this creep finds dropped resources next to it, pick it up
+                // even if a target is acquired, because it won't cost a tick.
+                var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, s => creep.pos.getRangeTo(s) <= 2);
+                if(target)
+                    creep.pickup(target)
+
                 var target = Game.getObjectById(creep.memory.target)
                 if(target instanceof Source && 0 < target.energy){
                     if(creep.harvest(target) === ERR_NOT_IN_RANGE)

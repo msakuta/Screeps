@@ -19,7 +19,8 @@ module.exports = {
             if(ERR_NOT_IN_RANGE === creep.rangedAttack(enemy)){
                 if(creep.memory.flag && Game.flags[creep.memory.flag] && Game.flags[creep.memory.flag].pos === creep.pos && creep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_RAMPART}}).length)
                     ; // Don't move if it's on a rampart (although it's not always the best strategy)
-                creep.moveTo(enemy)
+                else
+                    creep.moveTo(enemy)
             }
         }
         else if(!creep.memory.flag){

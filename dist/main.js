@@ -304,15 +304,17 @@ module.exports.loop = function () {
     if(Game.spawns.Spawn2){
         let transporters = _.filter(Game.creeps, creep => creep.memory.role === 'transporter')
         if(transporters.length < 2){
-            tryCreateCreepInt('transporter', 0, [
-                [WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE],
-                [WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE],
-                [WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE],
-                [WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
-                [WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
-                [WORK,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE],
-                [WORK,CARRY,CARRY,CARRY,MOVE,MOVE],
-            ], Game.spawns.Spawn2)
+            // Create body candidates with as much capacity as possible
+            let transporterBodyCandidates = []
+            for(let i = 10; 0 <= i; i--){
+                let body = [WORK,CARRY,MOVE]
+                for(let j = 0; j < i; j++){
+                    body.push(CARRY,CARRY,MOVE)
+                }
+                transporterBodyCandidates.push(body)
+                console.log('body: ' + i + ': ' + body)
+            }
+            tryCreateCreepInt('transporter', 0, transporterBodyCandidates, Game.spawns.Spawn2)
         }
     }
 

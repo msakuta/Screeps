@@ -31,13 +31,12 @@ var roleDigger = {
             let structs = _.filter(creep.room.lookAt(creep.pos), s => s.type === 'structure' && s.structure.structureType === STRUCTURE_CONTAINER)
             for(let i = 0; i < structs.length; i++)
                 struct = structs[i]
-            console.log('digger: ' + struct)
             if(struct){
                 creep.transfer(struct, RESOURCE_ENERGY)
                 creep.memory.task = undefined
                 creep.memory.target = undefined
             }
-            else{
+            else if(creep.getActiveBodyparts(WORK) * 5 <= creep.carry.energy || creep.carry.energy === creep.carryCapacity){
                 let cons = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES,
                     {filter: s => s.my && s.structureType === STRUCTURE_CONTAINER})
                 if(cons)
@@ -53,7 +52,6 @@ var roleDigger = {
                 for(let i = 0; i < flagNames.length; i++){
                     let flag = Game.flags[flagNames[i]]
 
-                    console.log('digger: flag[' + flagNames[i] + ']' + flag)
                     if(!flag)
                         continue
 

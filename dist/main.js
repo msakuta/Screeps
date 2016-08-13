@@ -260,7 +260,7 @@ module.exports.loop = function () {
 
         if(totalDiggerCount < 1){
             if(tryCreateCreepInt('digger', 0, [
-                [WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE,MOVE,MOVE]
+                [WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE,MOVE,MOVE]
             ], spawn))
                 totalDiggerCount++
         }

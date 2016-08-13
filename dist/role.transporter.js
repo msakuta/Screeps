@@ -11,32 +11,42 @@ module.exports = {
             }
             var fromSpawn = Game.spawns.Spawn2
             if(fromSpawn){
-                if(creep.room === fromSpawn.room){
-                    let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                        filter: s => (s.structureType === STRUCTURE_CONTAINER ||
-                            s.structureType === STRUCTURE_STORAGE) &&
-                            0 < s.store.energy && s.room === creep.room
-                    })
-                    if(container){
-                        if(creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
-                            creep.moveTo(container)
+                let roomGathering = false
+                if(creep.room === fromSpawn.room || !creep.room.controller || !creep.room.controller.my){
+                    let resource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES)
+                    if(resource){
+                        if(creep.pickup(resource) === ERR_NOT_IN_RANGE)
+                            creep.moveTo(resource)
+                        roomGathering = true
                     }
                     else{
-                        let source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => s.room === creep.room})
-                        if(source){
-                            if(creep.pos.getRangeTo(source) <= 2){
-                                let awayPath = PathFinder.search(creep.pos, {pos: source.pos, range: 3}, {flee: true}).path
-                                //console.log(awayPath)
-                                if(awayPath.length)
-                                    creep.moveTo(awayPath[awayPath.length-1])
+                        let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                            filter: s => (s.structureType === STRUCTURE_CONTAINER ||
+                                s.structureType === STRUCTURE_STORAGE) &&
+                                0 < s.store.energy && s.room === creep.room
+                        })
+                        if(container){
+                            if(creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
+                                creep.moveTo(container)
+                            roomGathering = true
+                        }
+                        else{
+                            let source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => s.room === creep.room})
+                            if(source){
+                                if(creep.pos.getRangeTo(source) <= 2){
+                                    let awayPath = PathFinder.search(creep.pos, {pos: source.pos, range: 3}, {flee: true}).path
+                                    //console.log(awayPath)
+                                    if(awayPath.length)
+                                        creep.moveTo(awayPath[awayPath.length-1])
+                                }
+    //                            if(creep.harvest(source) === ERR_NOT_IN_RANGE){
+    //                                creep.moveTo(source)
+    //                            }
                             }
-//                            if(creep.harvest(source) === ERR_NOT_IN_RANGE){
-//                                creep.moveTo(source)
-//                            }
                         }
                     }
                 }
-                else{
+                if(!roomGathering){
                     creep.moveTo(fromSpawn)
                 }
             }

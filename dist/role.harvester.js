@@ -107,7 +107,7 @@ var roleHarvester = {
                 for(let k in Game.spawns)
                     if(Game.spawns[k].room === creep.room)
                         spawn = Game.spawns[k]
-                if(energies[0] < energies[1] && spawn && spawnCreeps[spawn.name].indexOf(creep) < 3){
+                if(!spawn || energies[0] < energies[1] && spawnCreeps[spawn.name].indexOf(creep) < 3){
                     var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy ||
                             s.structureType === STRUCTURE_LINK && s.sink && 0 < s.energy
@@ -260,7 +260,8 @@ var roleHarvester = {
                     var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
                     return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&
                 !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity) &&
-                !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => s.store.energy < s.storeCapacity))
+                (!creep.room.controller || !creep.room.controller.my ||
+                    !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => s.store.energy < s.storeCapacity)))
             {
                 // If there's nothing to do, find a room with least working force
                 // and visit it as a helping hand.

@@ -258,7 +258,7 @@ module.exports.loop = function () {
     for(let key in Game.spawns){
         let spawn = Game.spawns[key]
 
-        if(totalDiggerCount < 1){
+        if(totalDiggerCount < 2){
             if(tryCreateCreepInt('digger', 0, [
                 [WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE,MOVE,MOVE]
             ], spawn))
@@ -301,9 +301,10 @@ module.exports.loop = function () {
     }
 
     // Create transporters
-    if(Game.spawns.Spawn2){
-        let transporters = _.filter(Game.creeps, creep => creep.memory.role === 'transporter')
-        if(transporters.length < 2){
+    let transporters = _.filter(Game.creeps, creep => creep.memory.role === 'transporter').length
+    for(let spawnName in Game.spawns){
+        let spawn = Game.spawns[spawnName]
+        if(transporters < 3){
             // Create body candidates with as much capacity as possible
             let transporterBodyCandidates = []
             for(let i = 10; 0 <= i; i--){
@@ -314,7 +315,8 @@ module.exports.loop = function () {
                 transporterBodyCandidates.push(body)
 //                console.log('body: ' + i + ': ' + body)
             }
-            tryCreateCreepInt('transporter', 0, transporterBodyCandidates, Game.spawns.Spawn2)
+            if(tryCreateCreepInt('transporter', 0, transporterBodyCandidates, spawn))
+                transporters++
         }
     }
 

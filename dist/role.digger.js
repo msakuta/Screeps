@@ -32,9 +32,10 @@ var roleDigger = {
             for(let i = 0; i < structs.length; i++)
                 struct = structs[i]
             if(struct){
-                creep.transfer(struct, RESOURCE_ENERGY)
-                creep.memory.task = undefined
-                creep.memory.target = undefined
+                if(struct.hits < struct.hitsMax)
+                    creep.repair(struct)
+                else
+                    creep.transfer(struct, RESOURCE_ENERGY)
             }
             else if(creep.getActiveBodyparts(WORK) * 5 <= creep.carry.energy || creep.carry.energy === creep.carryCapacity){
                 let cons = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES,

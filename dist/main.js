@@ -146,10 +146,12 @@ module.exports.loop = function () {
             links.sort((a,b) => a.range - b.range)
 
             if(2 <= links.length){
-                links[1].transferEnergy(links[0])
                 // Cache sink and source flags to use for harvesters
                 links[0].sink = true
-                links[1].source = true
+                for(let j = 1; j < links.length; j++){
+                    links[j].transferEnergy(links[0])
+                    links[j].source = true
+                }
                 //console.log('links sink: ' + links[0] + ', source: ' + links[1])
             }
             room.links = links
@@ -192,7 +194,7 @@ module.exports.loop = function () {
 
         let sourceCount = spawn.room.find(FIND_SOURCES).length;
 
-        if(harvesterCount < sourceCount + 1 && harvesterCost * 2 < energy[0] + energy[2] && totalHarvesterCount < spawnCount * (sourceCount + 1)) {
+        if(harvesterCount < sourceCount && harvesterCost * 2 < energy[0] + energy[2] && totalHarvesterCount < spawnCount * (sourceCount + 1)) {
             tryCreateCreep('harvester', 0, spawn)
         }
     }

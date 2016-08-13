@@ -34,7 +34,7 @@ module.exports = {
         }
         else if(creep.memory.task === 'gather'){
             if(creep.carry.energy === creep.carryCapacity){
-                creep.memory.task = 'transport'
+                creep.memory.task = 'store'
                 return
             }
             var fromSpawn = Game.spawns.Spawn2
@@ -81,7 +81,7 @@ module.exports = {
                 }
             }
         }
-        else if(creep.memory.task === 'transport'){
+        else if(creep.memory.task === 'store'){
             if(creep.carry.energy === 0){
                 creep.memory.task = 'gather'
             }
@@ -91,7 +91,9 @@ module.exports = {
                     let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: s => (s.structureType === STRUCTURE_CONTAINER ||
                             s.structureType === STRUCTURE_STORAGE) &&
-                            s.store.energy < s.storeCapacity
+                            s.store.energy < s.storeCapacity ||
+                            (s.structureType === STRUCTURE_LINK && s.source &&
+                            s.energy < s.energyCapacity)
                     })
                     if(creep.transfer(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE){
                         creep.moveTo(container)

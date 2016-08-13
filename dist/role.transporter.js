@@ -1,4 +1,20 @@
 
+/// We don't want to waste time for picking up tiny amount of energy by diverting from
+/// the main course, but if it's very close to the creep, it's worth bothering.
+/// This function is a measure of how distance is worth, in energy units.
+/// Unlike harvesters, transporter's time value is dependent on total travel
+/// distance (you won't mind 100 feet of excess walking if your journey is a
+/// mile long, but if you're walking to next building 200 feet away, it counts).
+/// Nevertheless, we assume one step is worth 1/10 of total carrying capacity,
+/// in order to avoid complications.
+function walkCost(creep, dist){
+    var carryParts = creep.getActiveBodyparts(CARRY)
+    // Debug log
+    //console.log('workParts: ' + workParts + ', totalPotentialHarvests: ' + totalPotentialHarvests)
+    return carryParts * dist / 10
+}
+
+
 module.exports = {
 
     /** @param {Creep} creep **/
@@ -26,9 +42,11 @@ module.exports = {
                 let roomGathering = false
                 if(creep.room === fromSpawn.room || !creep.room.controller || !creep.room.controller.my){
                     let resource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES)
-                    if(resource){
+                    let path = resource ? creep.pos.findPathTo(resource) : null
+                    // Go to dropped resource if a valid path is found to it and worth it
+                    if(resource && path && path.length && walkCost(creep, path.length) < resource.amount){
                         if(creep.pickup(resource) === ERR_NOT_IN_RANGE)
-                            creep.moveTo(resource)
+                            creep.move(path[0].direction)
                         roomGathering = true
                     }
                     else{

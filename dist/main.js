@@ -312,7 +312,7 @@ module.exports.loop = function () {
                     body.push(CARRY,CARRY,MOVE)
                 }
                 transporterBodyCandidates.push(body)
-                console.log('body: ' + i + ': ' + body)
+//                console.log('body: ' + i + ': ' + body)
             }
             tryCreateCreepInt('transporter', 0, transporterBodyCandidates, Game.spawns.Spawn2)
         }

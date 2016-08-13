@@ -45,13 +45,13 @@ module.exports = {
         for(var i in Game.rooms){
             var closestToExpire = 1500
             var room = Game.rooms[i]
-            var totalCreeps = [0,0,0,0,0,0]
-            var dyingCreeps = [0,0,0,0,0,0]
+            var totalCreeps = [0,0,0,0,0,0,0]
+            var dyingCreeps = [0,0,0,0,0,0,0]
             var restingCreeps = 0
             var creeps = room.find(FIND_MY_CREEPS)
             for(var j = 0; j < creeps.length; j++){
                 var creep = creeps[j]
-                var role = ['harvester', 'builder', 'ranger', 'attacker', 'claimer', 'upgrader'].indexOf(creep.memory.role)
+                var role = ['harvester', 'builder', 'digger', 'ranger', 'attacker', 'claimer', 'upgrader'].indexOf(creep.memory.role)
                 if(role < 0)
                     continue
                 totalCreeps[role]++

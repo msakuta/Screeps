@@ -1,5 +1,6 @@
 var roleHarvester = require('role.harvester');
 var roleAttacker = require('role.attacker');
+var roleDigger = require('role.digger');
 var roleClaimer = require('role.claimer');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
@@ -16,13 +17,14 @@ function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
             break;
     }
     if(i === maxCandidate){
-        return;
+        return false;
     }
     var newName = spawn.createCreep(body, undefined, {role: role});
     var partsStr = ''
     for(var i = 0; i < body.length; i++)
         partsStr += body[i][0]
     console.log('[' + spawn.name + '] Spawning new ' + role + ': ' + partsStr + ', name: ' + newName);
+    return true
 }
 
 function tryCreateCreep(role, priority, spawn){
@@ -251,6 +253,19 @@ module.exports.loop = function () {
         }
     }
 
+    // Spawn diggers
+    var totalDiggerCount = _.filter(Game.creeps, c => c.memory.role === 'digger').length
+    for(let key in Game.spawns){
+        let spawn = Game.spawns[key]
+
+        if(totalDiggerCount < 1){
+            if(tryCreateCreepInt('digger', 0, [
+                [WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE,MOVE,MOVE]
+            ], spawn))
+                totalDiggerCount++
+        }
+    }
+
     var rangers = _.filter(Game.creeps, (creep) => creep.memory.role == 'ranger');
     var maxRangers = roleRanger.countSites();
 
@@ -300,6 +315,7 @@ module.exports.loop = function () {
     var roles = {
         harvester: roleHarvester.run,
         builder: roleBuilder.run,
+        digger: roleDigger.run,
         attacker: roleAttacker.run,
         claimer: roleClaimer.run,
         ranger: roleRanger.run,

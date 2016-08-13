@@ -261,7 +261,7 @@ var roleHarvester = {
                     var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
                     return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&
                 !tryFindTarget([STRUCTURE_LINK], s => {
-                    if(!s.source || !(s.energy < s.energyCapacity) || 5 < creep.pos.getRangeTo(s))
+                    if(!s.source || !(s.energy < s.energyCapacity) || 3 < creep.pos.getRangeTo(s))
                         return false
                     var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
                     return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&

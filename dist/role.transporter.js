@@ -37,11 +37,12 @@ module.exports = {
                 creep.memory.task = 'store'
                 return
             }
-            var fromSpawn = Game.spawns.Spawn2
-            if(fromSpawn){
+            var fromSpawn = null
+            //if(false && fromSpawn)
+            {
                 let roomGathering = false
-                if(creep.room === fromSpawn.room || !creep.room.controller || !creep.room.controller.my){
-                    let resource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES)
+                if(fromSpawn && creep.room === fromSpawn.room || !creep.room.controller || !creep.room.controller.my){
+                    let resource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {filter: r => 100 < r.amount})
                     let path = resource ? creep.pos.findPathTo(resource) : null
                     // Go to dropped resource if a valid path is found to it and worth it
                     if(resource && path && path.length && walkCost(creep, path.length) < resource.amount){
@@ -57,8 +58,8 @@ module.exports = {
                     // Pick up dropped resources and withdraw from adjacent container
                     // simultaneously, but precede resource by not issueing withdraw
                     // order if resource amount is more than available space.
-                    if(container && (!resource || resource.amount < creep.carryCapacity - creep.carry.energy && creep.pos.getRangeTo(container) <= 2)){
-                        if(creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
+                    if(container && (!resource || creep.carryCapacity - _.sum(creep.carry) < resource.amount && creep.pos.getRangeTo(container) <= 1)){
+                        if(creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE && (!resource || creep.carryCapacity - _.sum(creep.carry) < resource.amount))
                             creep.moveTo(container)
                         roomGathering = true
                     }
@@ -78,7 +79,10 @@ module.exports = {
                     }
                 }
                 if(!roomGathering){
-                    creep.moveTo(fromSpawn)
+                    if(fromSpawn)
+                        creep.moveTo(fromSpawn)
+                    else if(Game.flags.dig)
+                        creep.moveTo(Game.flags.dig)
                 }
             }
         }
@@ -95,12 +99,20 @@ module.exports = {
             if(creep.carry.energy === 0){
                 creep.memory.task = 'gather'
             }
-            var toSpawn = Game.spawns.Spawn1
+            var toSpawn = _.reduce(Game.spawns, (best, spawn) => {
+                var storage = spawn.room.storage
+                if(!storage)
+                    return best
+                var bestStorage = best.room.storage
+                if(!bestStorage)
+                    return spawn
+                return spawn.room.storage.store.energy < best.room.storage.store.energy ? spawn : best
+            })
             if(toSpawn){
                 if(creep.room === toSpawn.room){
                     let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                        filter: s => (s.structureType === STRUCTURE_CONTAINER ||
-                            s.structureType === STRUCTURE_STORAGE) &&
+                        filter: s => (s.structureType === STRUCTURE_STORAGE ||
+                            s.structureType === STRUCTURE_CONTAINER) &&
                             s.store.energy < s.storeCapacity ||
                             // We need at least 100 space in order to transport energy to a link
                             // because it would be so inefficient unless we do.

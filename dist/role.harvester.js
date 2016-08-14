@@ -147,11 +147,14 @@ var roleHarvester = {
                 return target
             }
 
+            var spawn
+            for(let k in Game.spawns)
+                if(Game.spawns[k].room === creep.room)
+                    spawn = Game.spawns[k]
+            if(creep.room.energyAvailable < creep.room.energyCapacityAvailable && spawnCreeps[spawn.name].indexOf(creep) < 2)
+                creep.memory.task = 'fill'
+
             if(creep.memory.task === 'harvest' || creep.memory.task === 'fill' || _.sum(creep.carry) === 0){
-                var spawn
-                for(let k in Game.spawns)
-                    if(Game.spawns[k].room === creep.room)
-                        spawn = Game.spawns[k]
                 let containerWithdraw = !spawn || creep.memory.task === 'fill' || creep.room.energyAvailable < creep.room.energyCapacityAvailable && spawnCreeps[spawn.name].indexOf(creep) < 2
                 // Withdraw from container or storage only if there is a vacant
                 // extension, but always try to withdraw from sink link.
@@ -170,11 +173,12 @@ var roleHarvester = {
                             if(creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                                 creep.moveTo(target);
                             }
-                            creep.memory.task = 'fill'
                             thirsty = false
                         }
                     })
                 }
+                if(creep.memory.task === 'fill' && creep.room.energyAvailable === creep.room.energyCapacityAvailable)
+                    creep.memory.task = 'harvest'
             }
 
             if(_.sum(creep.carry) < creep.carryCapacity){
@@ -203,7 +207,7 @@ var roleHarvester = {
                     if(target && 0 < target.energy){
                         tasks.push({
                             name: 'Source',
-                            cost: creep.pos.getRangeTo(target) / Math.min(target.energy, workParts * 2),
+                            cost: creep.pos.getRangeTo(target) / Math.min(target.energy, workParts * 2) * 10,
                             target: target,
                             run: (target) => harvest(target)
                         })
@@ -211,7 +215,7 @@ var roleHarvester = {
                 }
             }
 
-            if(0 < creep.carry.energy){
+            if(50 <= creep.carry.energy){
                 var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: s => (s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_SPAWN) && s.energy < s.energyCapacity
                 })
@@ -233,7 +237,7 @@ var roleHarvester = {
                 }
             }
 
-            if(0 < creep.carry.energy && (!creep.room.controller || !creep.room.controller.my || creep.room.energyAvailable === creep.room.energyCapacityAvailable)){
+            if(creep.memory.task !== 'harvest' && 0 < creep.carry.energy && (!creep.room.controller || !creep.room.controller.my || creep.room.energyAvailable === creep.room.energyCapacityAvailable)){
                 let target = findTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => _.sum(s.store) < s.storeCapacity)
                 if(target){
                     tasks.push({
@@ -253,8 +257,8 @@ var roleHarvester = {
                 }
             }
 
-            if(!tasks.length)
-                console.log(creep.name + ': tasks: ' + tasks.length)
+            //if(!tasks.length)
+            //    console.log(creep.name + ': tasks: ' + tasks.length)
             if(tasks.length){
                 let bestTask = _.reduce(tasks, (best, task) => {
                     if(task.cost < best.cost)
@@ -262,7 +266,7 @@ var roleHarvester = {
                     return best
                 })
                 let costs = _.reduce(tasks, (str, task) => str += '[' + task.name +': ' + task.cost + '],', '')
-                console.log(creep.name + ': tasks: ' + tasks.length + ': bestTask: ' + bestTask.name + ', ' + bestTask.cost + ', ' + costs + ', ' + bestTask.target)
+                //console.log(creep.name + ': tasks: ' + tasks.length + ': bestTask: ' + bestTask.name + ', ' + bestTask.cost + ', ' + costs + ', ' + bestTask.target)
                 bestTask.run(bestTask.target)
             }
             else if(creep.memory.task === 'harvest' || _.sum(creep.carry) === 0) {
@@ -447,6 +451,11 @@ var roleHarvester = {
                     (!creep.room.controller || !creep.room.controller.my ||
                         !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => _.sum(s.store) < s.storeCapacity)))
                 {
+                    var dig = Game.flags.dig
+                    if(dig){
+                        creep.moveTo(dig)
+                    }
+                    else{
                     // If there's nothing to do, find a room with least working force
                     // and visit it as a helping hand.
                     // Technically, the least working force does not necessarily meaning
@@ -467,6 +476,7 @@ var roleHarvester = {
                     if(leastSpawn)
                         creep.moveTo(leastSpawn)
                     creep.memory.task = 'harvest'
+                    }
 
                     // Temporarily disable the code to go to resting place since
                     // creeps in the other rooms than the location of rest flag

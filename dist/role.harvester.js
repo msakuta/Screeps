@@ -1,16 +1,16 @@
 
 var spawnCreeps = {}
 
-function countTargetingCreeps(target){
+function countTargetingCreeps(target, ignore){
     var ret = 0
     for(var name in Game.creeps){
-        if(Game.creeps[name].memory.target === target.id)
+        if(Game.creeps[name] !== ignore && Game.creeps[name].memory.target === target.id)
             ret++
     }
     return ret
 }
 
-function sourcePredicate(s){
+function sourcePredicate(s, creep){
     // Skip empty sources, but if it's nearing to regenration, it's worth approaching.
     // This way, creeps won't waste time by wandering about while waiting regeneration.
     // The rationale behind this number is that you can reach the other side of a room
@@ -18,7 +18,7 @@ function sourcePredicate(s){
     return  (0 < s.energy || s.ticksToRegeneration < 50) &&
         // If there are enough harvesters gathering around this source, skip it.
         //(!Memory.sources[s.id] || Memory.sources[s.id].length < 2)
-        countTargetingCreeps(s) < countAdjacentSquares(s.pos,
+        countTargetingCreeps(s, creep) < countAdjacentSquares(s.pos,
             s2 => s2.type === LOOK_TERRAIN && s2[LOOK_TERRAIN] !== 'wall')+1
 }
 
@@ -99,84 +99,196 @@ var roleHarvester = {
             else
                 creep.moveTo(Game.spawns.Spawn1)
         }
-        else if(creep.memory.task === 'harvest' || _.sum(creep.carry) === 0) {
-            if(!creep.memory.target){
-                // If this creep has resources other than energy, store it to a
-                // storage before continuing because its capacity will be mixed.
-                for(let res in creep.carry){
-                    if(res !== RESOURCE_ENERGY){
-                        creep.memory.task = 'store'
-                        return
+        else{
+            var freeCapacity = creep.carryCapacity - _.sum(creep.carry)
+            var energies = totalEnergy()
+
+            var tasks = []
+
+            function harvest(source){
+                if(!source)
+                    return false
+                if(source instanceof Source){
+                    if(source.energy === 0){
+                        creep.memory.target = undefined
+                        return false
                     }
                 }
-                if(creep.memory.task !== 'harvest'){
-                    creep.memory.task = 'harvest'
-                    creep.say('harvester')
+                else if(source instanceof Mineral){
+                    if(source.mineralAmount === 0){
+                        creep.memory.target = undefined
+                        return false
+                    }
                 }
-                let hostile = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                    filter: s => !(s instanceof StructureController) && s.hits < 1e5 && s.pos.getRangeTo(creep.pos) < 25
+                if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(source);
+                    creep.memory.target = source.id
+                    //console.log(source.id + ' Adj: ' + countAdjacentSquares(source.pos,
+                    //    s2 => s2.type === LOOK_TERRAIN && s2[LOOK_TERRAIN] !== 'wall'))
+/*                                        if(!Memory.sources)
+                        Memory.sources = {source.id: [creep.name]}
+                    let sourceMem = Memory.sources[source.id]
+                    if(sourceMem.indexOf(creep.name) < 0)
+                        sourceMem.push(creep.name)*/
+                }
+                return true
+            }
+
+            function findTarget(types, isFilled){
+                var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: s => {
+                        for(var i = 0; i < types.length; i++){
+                            if(types[i] === s.structureType && isFilled(s))
+                                return true
+                        }
+                        return false
+                    }
                 })
-                if(hostile){
-                    if(creep.dismantle(hostile) === ERR_NOT_IN_RANGE)
-                        creep.moveTo(hostile)
-                    return
-                }
-                var energies = totalEnergy()
-                var thirsty = true
+                return target
+            }
+
+            if(creep.memory.task === 'harvest' || creep.memory.task === 'fill' || _.sum(creep.carry) === 0){
                 var spawn
                 for(let k in Game.spawns)
                     if(Game.spawns[k].room === creep.room)
                         spawn = Game.spawns[k]
-                if(!spawn || energies[0] < energies[1] && spawnCreeps[spawn.name].indexOf(creep) < 3){
+                if(!spawn || creep.memory.task === 'fill' || creep.room.energyAvailable < creep.room.energyCapacityAvailable && spawnCreeps[spawn.name].indexOf(creep) < 2){
                     var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy ||
                             s.structureType === STRUCTURE_LINK && s.sink && 0 < s.energy
                     });
                     if(source){
-                        if(creep.withdraw(source, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                            creep.moveTo(source);
-                        }
-                        thirsty = false
-                    }
-    	        }
-                if(thirsty){
-                    function harvest(source){
-                        if(!source)
-                            return false
-                        if(source instanceof Source){
-                            if(source.energy === 0){
-                                creep.memory.target = undefined
-                                return false
+                        let amount = source instanceof StructureLink ? source.energy : source.store.energy
+                        let costFactor = source instanceof StructureLink ? 0.5 : 1 // Prefer withdrawing from links
+                        tasks.push({
+                            name: 'Container',
+                            cost: costFactor * source.pos.getRangeTo(creep) / Math.min(freeCapacity, amount),
+                            target: source,
+                            run: (target) => {
+                                if(creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(target);
+                                }
+                                creep.memory.task = 'fill'
+                                thirsty = false
                             }
-                        }
-                        else if(source instanceof Mineral){
-                            if(source.mineralAmount === 0){
-                                creep.memory.target = undefined
-                                return false
-                            }
-                        }
-                        if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
-                            creep.moveTo(source);
-                            creep.memory.target = source.id
-                            //console.log(source.id + ' Adj: ' + countAdjacentSquares(source.pos,
-                            //    s2 => s2.type === LOOK_TERRAIN && s2[LOOK_TERRAIN] !== 'wall'))
-/*                                        if(!Memory.sources)
-                                Memory.sources = {source.id: [creep.name]}
-                            let sourceMem = Memory.sources[source.id]
-                            if(sourceMem.indexOf(creep.name) < 0)
-                                sourceMem.push(creep.name)*/
-                        }
-                        return true
+                        })
                     }
+                }
+            }
 
-                    var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
-                    var path = target ? creep.pos.findPathTo(target) : null
-                    // Go to dropped resource if a valid path is found to it and worth it
-                    if(target && path && path.length && totalPotentialHarvests(creep, path.length) < target.amount){
-                        if(ERR_NOT_IN_RANGE === creep.pickup(target))
-                            creep.move(path[0].direction)
+            if(_.sum(creep.carry) < creep.carryCapacity){
+                // Always try to find and collect dropped resources
+                var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                var path = target ? creep.pos.findPathTo(target) : null
+                // Go to dropped resource if a valid path is found to it and worth it
+                if(target && path && path.length && totalPotentialHarvests(creep, path.length) < target.amount){
+                    tasks.push({
+                        name: 'DropResource',
+                        cost: creep.pos.getRangeTo(target) / Math.min(freeCapacity, target.amount),
+                        target: target,
+                        run: (target) => {
+                            if(ERR_NOT_IN_RANGE === creep.pickup(target))
+                                creep.move(path[0].direction)
+                        }
+                    })
+                }
+
+                // The cost of harvesting source is not straightforward, but
+                // we can calculate it by the reward of first tick, i.e.
+                // harvestable energy per tick
+                let workParts = creep.getActiveBodyparts(WORK) * 2
+                if(0 < workParts){
+                    var target = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => sourcePredicate(s, creep)})
+                    if(target){
+                        tasks.push({
+                            name: 'Source',
+                            cost: creep.pos.getRangeTo(target) / workParts,
+                            target: target,
+                            run: (target) => harvest(target)
+                        })
                     }
-                    else if(!creep.room.controller || creep.room.controller.my || !creep.room.controller.owner){
+                }
+            }
+
+            if(0 < creep.carry.energy){
+                var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: s => (s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_SPAWN) && s.energy < s.energyCapacity
+                })
+                if(target){
+                    tasks.push({
+                        name: 'DumpExtension',
+                        cost: creep.pos.getRangeTo(target) / Math.min(creep.carry.energy, target.energyCapacity - target.energy),
+                        target: target,
+                        run: () => {
+                            // Dump all types of resources
+                            for(let res in creep.carry){
+                                if(creep.transfer(target, res) == ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(target);
+                                }
+                            }
+                            creep.memory.resting = undefined
+                        }
+                    })
+                }
+            }
+
+            if(0 < creep.carry.energy && (!creep.room.controller || !creep.room.controller.my || creep.room.energyAvailable === creep.room.energyCapacityAvailable)){
+                let target = findTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => _.sum(s.store) < s.storeCapacity)
+                if(target){
+                    tasks.push({
+                        name: 'DumpContainer',
+                        cost: creep.pos.getRangeTo(target) / Math.min(creep.carry.energy, target.storeCapacity - _.sum(target.store)),
+                        target: target,
+                        run: (target) => {
+                            // Dump all types of resources
+                            for(let res in creep.carry){
+                                if(creep.transfer(target, res) == ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(target);
+                                }
+                            }
+                            creep.memory.resting = undefined
+                        }
+                    })
+                }
+            }
+
+            if(!tasks.length)
+                console.log(creep.name + ': tasks: ' + tasks.length)
+            if(tasks.length){
+                let bestTask = _.reduce(tasks, (best, task) => {
+                    if(task.cost < best.cost)
+                        return task
+                    return best
+                })
+                let costs = _.reduce(tasks, (str, task) => str += '[' + task.name +': ' + task.cost + '],', '')
+                console.log(creep.name + ': tasks: ' + tasks.length + ': bestTask: ' + bestTask.name + ', ' + bestTask.cost + ', ' + costs + ', ' + bestTask.target)
+                bestTask.run(bestTask.target)
+            }
+            else if(creep.memory.task === 'harvest' || _.sum(creep.carry) === 0) {
+                if(!creep.memory.target){
+                    // If this creep has resources other than energy, store it to a
+                    // storage before continuing because its capacity will be mixed.
+                    for(let res in creep.carry){
+                        if(res !== RESOURCE_ENERGY){
+                            creep.memory.task = 'store'
+                            return
+                        }
+                    }
+                    if(creep.memory.task !== 'harvest' && creep.memory.task !== 'fill'){
+                        creep.memory.task = 'harvest'
+                        creep.say('harvester')
+                    }
+                    let hostile = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                        filter: s => !(s instanceof StructureController) && s.hits < 1e5 && s.pos.getRangeTo(creep.pos) < 25
+                    })
+                    if(hostile){
+                        if(creep.dismantle(hostile) === ERR_NOT_IN_RANGE)
+                            creep.moveTo(hostile)
+                        return
+                    }
+                    var thirsty = true
+
+                    if(!creep.room.controller || creep.room.controller.my || !creep.room.controller.owner){
                         var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: s => s.structureType === STRUCTURE_LINK && s.sink && 0 < s.energy &&
                                 creep.pos.getRangeTo(s) <= 5
@@ -214,7 +326,7 @@ var roleHarvester = {
 
                                 if(Game.flags.extra !== undefined){
                                     creep.moveTo(Game.flags.extra)
-/*                                    let flagroom = Game.flags.extra.room
+    /*                                    let flagroom = Game.flags.extra.room
                                     if(flagroom === creep.room){
                                         findAndHarvest()
                                     }
@@ -249,7 +361,7 @@ var roleHarvester = {
                     }
                 }
             }
-            else{
+            else if(creep.memory.target){
                 // If this creep finds dropped resources next to it, pick it up
                 // even if a target is acquired, because it won't cost a tick.
                 var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, s => creep.pos.getRangeTo(s) <= 2);
@@ -272,7 +384,7 @@ var roleHarvester = {
             }
             creep.memory.resting = undefined
         }
-        else {
+        if(creep.carry.energy === creep.carryCapacity){
             function tryFindTarget(types, isFilled){
                 var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: s => {

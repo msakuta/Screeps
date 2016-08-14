@@ -152,27 +152,28 @@ var roleHarvester = {
                 for(let k in Game.spawns)
                     if(Game.spawns[k].room === creep.room)
                         spawn = Game.spawns[k]
-                if(!spawn || creep.memory.task === 'fill' || creep.room.energyAvailable < creep.room.energyCapacityAvailable && spawnCreeps[spawn.name].indexOf(creep) < 2){
-                    var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                        filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy ||
-                            s.structureType === STRUCTURE_LINK && s.sink && 0 < s.energy
-                    });
-                    if(source){
-                        let amount = source instanceof StructureLink ? source.energy : source.store.energy
-                        let costFactor = source instanceof StructureLink ? 0.5 : 1 // Prefer withdrawing from links
-                        tasks.push({
-                            name: 'Container',
-                            cost: costFactor * source.pos.getRangeTo(creep) / Math.min(freeCapacity, amount),
-                            target: source,
-                            run: (target) => {
-                                if(creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(target);
-                                }
-                                creep.memory.task = 'fill'
-                                thirsty = false
+                let containerWithdraw = !spawn || creep.memory.task === 'fill' || creep.room.energyAvailable < creep.room.energyCapacityAvailable && spawnCreeps[spawn.name].indexOf(creep) < 2
+                // Withdraw from container or storage only if there is a vacant
+                // extension, but always try to withdraw from sink link.
+                var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: s => containerWithdraw && (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy ||
+                        s.structureType === STRUCTURE_LINK && s.sink && 0 < s.energy
+                });
+                if(source){
+                    let amount = source instanceof StructureLink ? source.energy : source.store.energy
+                    let costFactor = source instanceof StructureLink ? 0.5 : 1 // Prefer withdrawing from links
+                    tasks.push({
+                        name: 'Container',
+                        cost: costFactor * source.pos.getRangeTo(creep) / Math.min(freeCapacity, amount),
+                        target: source,
+                        run: (target) => {
+                            if(creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                                creep.moveTo(target);
                             }
-                        })
-                    }
+                            creep.memory.task = 'fill'
+                            thirsty = false
+                        }
+                    })
                 }
             }
 
@@ -196,13 +197,13 @@ var roleHarvester = {
                 // The cost of harvesting source is not straightforward, but
                 // we can calculate it by the reward of first tick, i.e.
                 // harvestable energy per tick
-                let workParts = creep.getActiveBodyparts(WORK) * 2
+                let workParts = creep.getActiveBodyparts(WORK)
                 if(0 < workParts){
                     var target = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => sourcePredicate(s, creep)})
-                    if(target){
+                    if(target && 0 < target.energy){
                         tasks.push({
                             name: 'Source',
-                            cost: creep.pos.getRangeTo(target) / workParts,
+                            cost: creep.pos.getRangeTo(target) / Math.min(target.energy, workParts * 2),
                             target: target,
                             run: (target) => harvest(target)
                         })

@@ -1,3 +1,4 @@
+var stats = require('stats')
 
 var spawnCreeps = {}
 
@@ -101,7 +102,7 @@ var roleHarvester = {
         }
         else{
             var freeCapacity = creep.carryCapacity - _.sum(creep.carry)
-            var energies = totalEnergy()
+            var energies = stats.totalEnergy(creep.room)
 
             var tasks = []
 
@@ -151,7 +152,9 @@ var roleHarvester = {
             for(let k in Game.spawns)
                 if(Game.spawns[k].room === creep.room)
                     spawn = Game.spawns[k]
-            if(creep.room.energyAvailable < creep.room.energyCapacityAvailable && spawnCreeps[spawn.name].indexOf(creep) < 2)
+            // Try to assign 'fill' task only if there is a container or storage
+            // with excess energy.
+            if(creep.room.energyAvailable < creep.room.energyCapacityAvailable && energies[2] && spawnCreeps[spawn.name].indexOf(creep) < 2)
                 creep.memory.task = 'fill'
 
             if(creep.memory.task === 'harvest' || creep.memory.task === 'fill' || _.sum(creep.carry) === 0){

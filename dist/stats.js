@@ -22,6 +22,11 @@ function totalEnergy(room){
             storedEnergy += containers[j].store.energy
             storedEnergyCapacity += containers[j].storeCapacity
         }
+        let links = room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_LINK})
+        for(let j = 0; j < links.length; j++){
+            storedEnergy += links[j].energy
+            storedEnergyCapacity += links[j].energyCapacity
+        }
 
         // Automatically cache return value to private static variable to return
         // for the second or later invocation of the function.
@@ -45,7 +50,7 @@ module.exports = {
         for(var i in Game.rooms){
             var closestToExpire = 1500
             var room = Game.rooms[i]
-            var roles = ['harvester', 'builder', 'digger', 'ranger', 'attacker', 'claimer', 'upgrader']
+            var roles = ['harvester', 'builder', 'digger', 'ranger', 'attacker', 'claimer', 'transporter', 'upgrader']
             var totalCreeps = [0,0,0,0,0,0,0]
             var dyingCreeps = [0,0,0,0,0,0,0]
             var restingCreeps = 0

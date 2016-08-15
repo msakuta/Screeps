@@ -221,10 +221,14 @@ module.exports.loop = function () {
     var maxAttackers = (controllers < 2) * Math.min(3, Math.floor(Memory.storedEnergyHistory[Memory.storedEnergyHistory.length-1] / 5e4))
 
     if(attackers.length < maxAttackers) {
-        tryCreateCreepInt('attacker', 0, [
-            [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
-            [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
-        ])
+        for(let s in Game.spawns){
+        if(tryCreateCreepInt('attacker', 0, [
+                [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
+                [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],
+            ], Game.spawns[s])
+            )
+            break
+        }
     }
 
     var claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
@@ -298,10 +302,10 @@ module.exports.loop = function () {
     // Spawn interceptors
     if(interceptors.length < maxInterceptors) {
         tryCreateCreepInt('interceptor', 0, [
-            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL]
-            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL]
-            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL]
-            [MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL]
+            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
+            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
+            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
+            [MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
         ])
     }
 

@@ -5,6 +5,7 @@ var roleClaimer = require('role.claimer');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 var roleRanger = require('role.ranger');
+var roleInterceptor = require('role.interceptor');
 var roleTransporter = require('role.transporter');
 var stats = require('stats')
 
@@ -257,7 +258,7 @@ module.exports.loop = function () {
 
         // You don't really need more than 2 builders
         let creepsPerSpawn = (1 + (3 < spawn.room.controller.level))
-        if(builderCount < creepsPerSpawn && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2] && totalBuilderCount < spawnCount * creepsPerSpawn * 1.5) {
+        if(builderCount < creepsPerSpawn && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2] && totalBuilderCount < spawnCount * creepsPerSpawn) {
             tryCreateCreep('builder', spawn.room.controller.level - 1, spawn)
         }
     }
@@ -282,11 +283,25 @@ module.exports.loop = function () {
     if(0 < Game.spawns.Spawn1.room.find(FIND_HOSTILE_CREEPS).length)
         maxRangers++
 
+    // Spawn rangers
     if(rangers.length < maxRangers) {
         tryCreateCreepInt('ranger', 0, [
             [TOUGH,TOUGH,TOUGH,TOUGH,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE],
             [TOUGH,TOUGH,TOUGH,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE]
             [RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE]
+        ])
+    }
+
+    var interceptors = _.filter(Game.creeps, (creep) => creep.memory.role == 'interceptor');
+    var maxInterceptors = !!roleInterceptor.findEnemy();
+
+    // Spawn interceptors
+    if(interceptors.length < maxInterceptors) {
+        tryCreateCreepInt('interceptor', 0, [
+            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL]
+            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL]
+            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL]
+            [MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL]
         ])
     }
 
@@ -337,6 +352,7 @@ module.exports.loop = function () {
         attacker: roleAttacker.run,
         claimer: roleClaimer.run,
         ranger: roleRanger.run,
+        interceptor: roleInterceptor.run,
         transporter: roleTransporter.run,
         upgrader: roleUpgrader.run,
     }

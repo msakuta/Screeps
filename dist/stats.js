@@ -50,7 +50,7 @@ module.exports = {
         for(var i in Game.rooms){
             var closestToExpire = 1500
             var room = Game.rooms[i]
-            var roles = ['harvester', 'builder', 'digger', 'ranger', 'attacker', 'claimer', 'transporter', 'upgrader']
+            var roles = ['harvester', 'builder', 'digger', 'ranger', 'interceptor', 'attacker', 'claimer', 'transporter', 'upgrader']
             var totalCreeps = [0,0,0,0,0,0,0]
             var dyingCreeps = [0,0,0,0,0,0,0]
             var restingCreeps = 0

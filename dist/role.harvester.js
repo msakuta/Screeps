@@ -165,7 +165,7 @@ var roleHarvester = {
                 // extension, but always try to withdraw from sink link.
                 var source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: s => containerWithdraw && (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy ||
-                        s.structureType === STRUCTURE_LINK && s.sink && 0 < s.energy
+                        s.structureType === STRUCTURE_LINK && s.sink && 0 < s.energy && creep.pos.getRangeTo(s) < 10
                 });
                 if(source){
                     let amount = source instanceof StructureLink ? source.energy : source.store.energy

@@ -65,7 +65,7 @@ module.exports = {
                             })
                         }
 
-                        let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        let containers = creep.room.find(FIND_STRUCTURES, {
                             filter: s => (s.structureType === STRUCTURE_CONTAINER ||
                                 s.structureType === STRUCTURE_STORAGE) &&
                                 0 < s.store.energy && s.room === creep.room
@@ -73,11 +73,11 @@ module.exports = {
                         // Pick up dropped resources and withdraw from adjacent container
                         // simultaneously, but precede resource by not issueing withdraw
                         // order if resource amount is more than available space.
-                        if(container && creep.pos.getRangeTo(container) <= 1){
+                        for(let i = 0 ; i < containers.length; i++){
                             tasks.push({
                                 name: 'Container',
-                                cost: creep.pos.getRangeTo(container) / Math.min(freeCapacity, container.store.energy),
-                                target: container,
+                                cost: creep.pos.getRangeTo(containers[i]) / Math.min(freeCapacity, containers[i].store.energy),
+                                target: containers[i],
                                 run: container => {
                                     if(creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
                                         creep.moveTo(container)

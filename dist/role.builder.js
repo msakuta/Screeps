@@ -90,11 +90,30 @@ var roleBuilder = {
                 creep.memory.resting = false;
                 creep.say('building');
             }
+            else{
+                for(let r in Game.rooms){
+                    let room = Game.rooms[r]
+                    if(room === creep.room)
+                        continue
+                    let targets = room.find(FIND_MY_CONSTRUCTION_SITES)
+                    if(0 < targets.length){
+                        creep.memory.room = room.name
+                        creep.memory.task = 'build'
+                        creep.say('remote')
+                    }
+                }
+            }
         }
 
         if(creep.memory.task === 'build') {
             var target
-            if(creep.memory.target && (target = Game.getObjectById(creep.memory.target))){
+            if(creep.memory.room){
+                if(creep.memory.room !== creep.room.name)
+                    creep.moveTo(new RoomPosition(25, 25, creep.memory.room))
+                else
+                    creep.memory.room = undefined
+            }
+            else if(creep.memory.target && (target = Game.getObjectById(creep.memory.target))){
                 //console.log('builder target: '+ target.id + ', ' + (target instanceof Structure))
                 if(target instanceof Structure){
                     if(target.hits === target.hitsMax){

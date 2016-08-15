@@ -35,6 +35,11 @@ module.exports = {
             }
         }
         else{
+            // moveTo and heal can be executed simultaneously.
+            if(creep.hits < creep.hitsMax){
+                creep.heal(creep)
+            }
+
             var enemyRoom = findEnemy()
             if(enemyRoom){
                 creep.moveTo(new RoomPosition(25, 25, enemyRoom.name))

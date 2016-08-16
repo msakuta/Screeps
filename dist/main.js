@@ -190,10 +190,14 @@ module.exports.loop = function () {
         let spawn = Game.spawns[key]
         let harvesterCost = 0
         let harvesterCount = 0
+        let diggerCount = 0
         for(let i in Game.creeps){
             if(Game.creeps[i].memory.role === 'harvester' && Game.creeps[i].room === spawn.room){
                 harvesterCost += countBodyCost(Game.creeps[i])
                 harvesterCount++
+            }
+            if(Game.creeps[i].memory.role === 'digger' && Game.creeps[i].room === spawn.room){
+                diggerCount++
             }
         }
         let energy = stats.totalEnergy(spawn.room)
@@ -202,7 +206,7 @@ module.exports.loop = function () {
 
         let sourceCount = spawn.room.find(FIND_SOURCES).length;
 
-        if(harvesterCount < sourceCount && harvesterCost * 2 < energy[0] + energy[2] && totalHarvesterCount < spawnCount * (sourceCount + 1)) {
+        if((harvesterCount === 0 || harvesterCount + diggerCount < sourceCount) && harvesterCost * 2 < energy[0] + energy[2] && totalHarvesterCount < spawnCount * (sourceCount + 1)) {
             tryCreateCreep('harvester', 0, spawn)
         }
     }
@@ -272,7 +276,7 @@ module.exports.loop = function () {
     for(let key in Game.spawns){
         let spawn = Game.spawns[key]
 
-        if(totalDiggerCount < 2){
+        if(totalDiggerCount < roleDigger.diggerCount()){
             if(tryCreateCreepInt('digger', 0, [
                 [WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE,MOVE,MOVE]
             ], spawn))

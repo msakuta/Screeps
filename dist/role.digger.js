@@ -1,5 +1,11 @@
+var flagNames = ['dig', 'dig2', 'dig4']
+
 
 var roleDigger = {
+
+    diggerCount: function(){
+        return _.filter(flagNames, f => f in Game.flags).length
+    },
 
     /** @param {Creep} creep **/
     run: function(creep) {
@@ -50,7 +56,6 @@ var roleDigger = {
         }
 
         if(creep.memory.task === 'harvest' || true){
-            let flagNames = ['dig', 'dig2', 'dig4']
             if(!creep.memory.flag){
                 for(let i = 0; i < flagNames.length; i++){
                     let flag = Game.flags[flagNames[i]]

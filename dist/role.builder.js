@@ -101,6 +101,14 @@ var roleBuilder = {
                         creep.memory.task = 'build'
                         creep.say('remote')
                     }
+                    else{
+                        let targets = room.find(FIND_MY_STRUCTURES)
+                        if(0 < targets.length){
+                            creep.memory.room = room.name
+                            creep.memory.task = 'build'
+                            creep.say('remote repair')
+                        }
+                    }
                 }
             }
         }

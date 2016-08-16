@@ -48,11 +48,18 @@ module.exports = {
 
     stats: function(){
         for(var i in Game.rooms){
+            // There is no handly equivalent in libraries...
+            function repeatArray(n,v){
+                var ret = []
+                while(ret.length < n)
+                    ret.push(v)
+                return ret
+            }
             var closestToExpire = 1500
             var room = Game.rooms[i]
             var roles = ['harvester', 'builder', 'digger', 'ranger', 'interceptor', 'attacker', 'claimer', 'transporter', 'upgrader']
-            var totalCreeps = [0,0,0,0,0,0,0]
-            var dyingCreeps = [0,0,0,0,0,0,0]
+            var totalCreeps = repeatArray(roles.length, 0)
+            var dyingCreeps = repeatArray(roles.length, 0)
             var restingCreeps = 0
             var creeps = room.find(FIND_MY_CREEPS)
             for(var j = 0; j < creeps.length; j++){

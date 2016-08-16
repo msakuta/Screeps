@@ -27,11 +27,13 @@ var roleDigger = {
 
         // Find and drop energy into adjacent container
         if(0 < creep.carry.energy){
-            let struct
-            let structs = _.filter(creep.room.lookAt(creep.pos), s => s.type === 'structure' && s.structure.structureType === STRUCTURE_CONTAINER)
-            for(let i = 0; i < structs.length; i++)
-                struct = structs[i]
-            if(struct){
+            let structs = _.filter(creep.room.lookAtArea(creep.pos.y - 1, creep.pos.x - 1, creep.pos.y + 1, creep.pos.x + 1, true),
+                s => s.type === 'structure' && (
+                    s.structure.structureType === STRUCTURE_CONTAINER && s.structure.store.energy < s.structure.storeCapacity ||
+                    s.structure.structureType === STRUCTURE_LINK && s.structure.energy < s.structure.energyCapacity))
+            let stile = _.reduce(structs, (best, s) => s.structure.structureType === STRUCTURE_LINK ? s : best)
+            if(stile && stile.structure){
+                let struct = stile.structure
                 if(struct.hits < struct.hitsMax)
                     creep.repair(struct)
                 else
@@ -48,7 +50,7 @@ var roleDigger = {
         }
 
         if(creep.memory.task === 'harvest' || true){
-            let flagNames = ['dig', 'dig2']
+            let flagNames = ['dig', 'dig2', 'dig4']
             if(!creep.memory.flag){
                 for(let i = 0; i < flagNames.length; i++){
                     let flag = Game.flags[flagNames[i]]

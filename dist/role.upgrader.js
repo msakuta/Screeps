@@ -52,29 +52,49 @@ var roleUpgrader = {
             }
             else if(creep.memory.target){
                 var source = Game.getObjectById(creep.memory.target)
-                if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                if(!source || source.energy === 0)
+                    creep.memory.target = undefined
+                else if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
                     creep.moveTo(source);
                 }
             }
             else{
-                var source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: roleHarvester.sourcePredicate});
-                if(source){
-                    if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
-                        creep.moveTo(source);
-                    }
-                    creep.memory.target = source.id
-/*                    if(!srouce.harvesters)
-                        source.harvesters = [creep]
-                    else{
-                        source.harvesters.push(creep)
-                        source.harvesters.sort((a,b) => a.getRangeTo(source) < b.getRangeTo(source))*/
-//                        if(2 < source.harvesters.length)
-//                            source.harvesters.splice(2, source.harvesters.length - 2)
-//                    }
+                let targetFound = false
+                if(creep.room.energyAvailable === creep.room.energyCapacityAvailable){
+                    // If the room's energy demand is satisfied (or there is no spawn in the room),
+                    // try to withdraw energy from storage because it would be faster than harvesting
+                    // from a source.  Chances are a digger is digging and dumping onto the container.
+/*                    let target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy
+                            || s.structureType === STRUCTURE_LINK && 0 < s.energy
+                    })
+                    if(target){
+                        if(creep.withdraw(target) === ERR_NOT_IN_RANGE){
+                            creep.moveTo(target)
+                        }
+                        targetFound = true
+                    }*/
                 }
-                else if(Game.flags.extra !== undefined){
-                    creep.moveTo(Game.flags.extra)
-                    creep.memory.target = undefined
+                if(!targetFound){
+                    var source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: roleHarvester.sourcePredicate});
+                    if(source){
+                        if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                            creep.moveTo(source);
+                        }
+                        creep.memory.target = source.id
+    /*                    if(!srouce.harvesters)
+                            source.harvesters = [creep]
+                        else{
+                            source.harvesters.push(creep)
+                            source.harvesters.sort((a,b) => a.getRangeTo(source) < b.getRangeTo(source))*/
+    //                        if(2 < source.harvesters.length)
+    //                            source.harvesters.splice(2, source.harvesters.length - 2)
+    //                    }
+                    }
+                    else if(Game.flags.extra !== undefined){
+                        creep.moveTo(Game.flags.extra)
+                        creep.memory.target = undefined
+                    }
                 }
             }
 

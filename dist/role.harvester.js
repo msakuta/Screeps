@@ -250,7 +250,7 @@ var roleHarvester = {
                 if(target){
                     tasks.push({
                         name: 'DumpContainer',
-                        cost: creep.pos.getRangeTo(target) / Math.min(creep.carry.energy, target.storeCapacity - _.sum(target.store)),
+                        cost: 2 * creep.pos.getRangeTo(target) / Math.min(creep.carry.energy, target.storeCapacity - _.sum(target.store)),
                         target: target,
                         run: (target) => {
                             // Dump all types of resources

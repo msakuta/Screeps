@@ -20,11 +20,34 @@ function countBodyCost(creep){
     return ret
 }
 
+function estimateBodyCost(body){
+    return _.reduce(body, (accum, part) => accum + bodyCosts[part], 0)
+}
+
+/// Returns compact string (one character per part) representing the body
+/// @returns {string} the string
+function compactBodyString(body){
+    var partsStr = ''
+    for(var i = 0; i < body.length; i++)
+        partsStr += body[i][0]
+    return partsStr
+}
+
 function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
     spawn = spawn || Game.spawns.Spawn1
     var maxCandidate = bodyCandidates.length - (priority || 0)
+    var hasHarvester = 0 < _.filter(Game.creeps, c => c.room === spawn.room && c.memory.role === 'harvester').length
     for(var i = 0; i < maxCandidate; i++){
         var body = bodyCandidates[i];
+        // If there's a harvester in the room and the cost of the newly created creep
+        // is less than certain fraction of total energy capacity, be patient and
+        // wait till the extensions are filled. However, if the candidate's
+        // requirement is the maximum (i === 0), create no matter what.
+        if(hasHarvester && i !== 0 && estimateBodyCost(bodyCandidates[i-1]) < spawn.room.energyCapacityAvailable && estimateBodyCost(body) < spawn.room.energyCapacityAvailable * 2 / 3){
+            // Debug output
+            // console.log('tryCreateCreep: ' + compactBodyString(body) + ': ' + estimateBodyCost(body) + '/' + spawn.room.energyAvailable + '/' + spawn.room.energyCapacityAvailable)
+            return false
+        }
         if(0 <= spawn.canCreateCreep(body))
             break;
     }
@@ -32,10 +55,7 @@ function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
         return false;
     }
     var newName = spawn.createCreep(body, undefined, {role: role});
-    var partsStr = ''
-    for(var i = 0; i < body.length; i++)
-        partsStr += body[i][0]
-    console.log('[' + spawn.name + '] Spawning new ' + role + ': ' + partsStr + ', name: ' + newName);
+    console.log('[' + spawn.name + '] Spawning new ' + role + ': ' + compactBodyString(body) + ', name: ' + newName);
     if(!Memory.spent)
         Memory.spent = {}
     Memory.spent[role] = (Memory.spent[role] || 0) + countBodyCost(Game.creeps[newName])
@@ -206,7 +226,7 @@ module.exports.loop = function () {
 
         let sourceCount = spawn.room.find(FIND_SOURCES).length;
 
-        if((harvesterCount === 0 || harvesterCount + diggerCount < sourceCount) && harvesterCost * 2 < energy[0] + energy[2] && totalHarvesterCount < spawnCount * (sourceCount + 1)) {
+        if((harvesterCount === 0 || harvesterCount + diggerCount < sourceCount + 1) && harvesterCost < 1000 && totalHarvesterCount < spawnCount * (sourceCount + 1)) {
             tryCreateCreep('harvester', 0, spawn)
         }
     }

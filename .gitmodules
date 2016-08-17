@@ -1,0 +1,4 @@
+[submodule "ScreepsAutocomplete"]
+	path = ScreepsAutocomplete
+	url = git@github.com:Garethp/ScreepsAutocomplete.git
+	branch = master

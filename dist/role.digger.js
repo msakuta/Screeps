@@ -31,13 +31,16 @@ var roleDigger = {
             return harvestsPerTick * dist
         }
 
+        let adjacentObjs = creep.room.lookAtArea(Math.max(0, creep.pos.y - 1), Math.max(0, creep.pos.x - 1), Math.min(49, creep.pos.y + 1), Math.min(49, creep.pos.x + 1), true)
+        let structs = _.filter(adjacentObjs,
+            s => s.type === 'structure' && (
+                s.structure.structureType === STRUCTURE_CONTAINER && s.structure.store.energy < s.structure.storeCapacity ||
+                s.structure.structureType === STRUCTURE_LINK && s.structure.energy < s.structure.energyCapacity))
+        // Prefer a link
+        let stile = _.reduce(structs, (best, s) => s.structure.structureType === STRUCTURE_LINK ? s : best)
+
         // Find and drop energy into adjacent container
         if(0 < creep.carry.energy){
-            let structs = _.filter(creep.room.lookAtArea(creep.pos.y - 1, creep.pos.x - 1, creep.pos.y + 1, creep.pos.x + 1, true),
-                s => s.type === 'structure' && (
-                    s.structure.structureType === STRUCTURE_CONTAINER && s.structure.store.energy < s.structure.storeCapacity ||
-                    s.structure.structureType === STRUCTURE_LINK && s.structure.energy < s.structure.energyCapacity))
-            let stile = _.reduce(structs, (best, s) => s.structure.structureType === STRUCTURE_LINK ? s : best)
             if(stile && stile.structure){
                 let struct = stile.structure
                 if(struct.hits < struct.hitsMax)
@@ -52,6 +55,14 @@ var roleDigger = {
                     creep.build(cons)
                 else
                     creep.pos.createConstructionSite(STRUCTURE_CONTAINER)
+            }
+        }
+        else if(stile && stile.structure.structureType === STRUCTURE_LINK && stile.structure.energy < stile.structure.energyCapacity){
+            // If there's an adjacent link to the creep and a dropped energy,
+            // pick it up
+            let dropResources = _.filter(adjacentObjs, s => s.type === FIND_DROPPED_ENERGY)
+            if(0 < dropResources.length){
+                creep.pickup(dropResources)
             }
         }
 

@@ -36,6 +36,29 @@ function compactBodyString(body){
 function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
     spawn = spawn || Game.spawns.Spawn1
     var maxCandidate = bodyCandidates.length - (priority || 0)
+    if(spawn.memory.queue === undefined)
+        spawn.memory.queue = []
+
+    spawn.demands[role] = true
+
+    // This is the spawning queue, managed for each spawn.
+    // This is unlike usual queue in that it doesn't actually store a complete command
+    // but an identifier (role name).  It's designed in this way because the conditions
+    // and energy amount available change every tick, so if we had stored those information
+    // into the queue, it would be not only redundant but could be outdated at the time of
+    // actual creation.
+    // Also note that if the situation changed so that particular role becomes
+    // no longer necessary, we need to remove it from the queue, which is done
+    // in the main loop.
+    var queidx = spawn.memory.queue.indexOf(role)
+    if(queidx < 0){
+        // If the queue does not have the role name, push a new entry to the end
+        spawn.memory.queue.push(role)
+        queidx = 0
+    }
+    else if(0 < queidx) // It's not our turn yet
+        return false
+
     var hasHarvester = 0 < _.filter(Game.creeps, c => c.room === spawn.room && c.memory.role === 'harvester').length
     for(var i = 0; i < maxCandidate; i++){
         var body = bodyCandidates[i];
@@ -55,10 +78,18 @@ function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
         return false;
     }
     var newName = spawn.createCreep(body, undefined, {role: role});
+    if(typeof newName === 'number' && newName < 0 || spawn.issued)
+        return false
+    // Signal other roles not to issue another createCreep command, because it would
+    // overwrite this one's
+    spawn.issued = true
     console.log('[' + spawn.name + '] Spawning new ' + role + ': ' + compactBodyString(body) + ', name: ' + newName);
     if(!Memory.spent)
         Memory.spent = {}
     Memory.spent[role] = (Memory.spent[role] || 0) + countBodyCost(Game.creeps[newName])
+    // Pop the queue if successfully created
+    if(queidx === 0)
+        spawn.memory.queue.splice(0,1)
     return true
 }
 
@@ -197,6 +228,13 @@ module.exports.loop = function () {
         }
     }
 
+
+    // Reset spawn demands in case garbage remains in the VM
+    for(let name in Game.spawns){
+        let spawn = Game.spawns[name]
+        spawn.demands = {}
+        spawn.issued = false
+    }
 
     roleHarvester.sortDistance()
 
@@ -370,6 +408,24 @@ module.exports.loop = function () {
             }
             if(tryCreateCreepInt('transporter', 0, transporterBodyCandidates, spawn))
                 transporters++
+        }
+    }
+
+    // Clear queue entries which has no demand in this tick, because unless we do,
+    // an outdated queue entry could stay forever, blocking other entries.
+    // If the demand emerges again after such a tick, it will be pushed to the
+    // end of the queue, which means it needs to wait from the start.
+    for(let name in Game.spawns){
+        let spawn = Game.spawns[name]
+        if(spawn && !spawn.memory.queue)
+            continue
+        //console.log(spawn + ' queue: ' + spawn.memory.queue.length + ' demands: ' + _.sum(spawn.demands))
+        for(let i = 0; i < spawn.memory.queue.length;){
+            if(!(spawn.memory.queue[i] in spawn.demands))
+                spawn.memory.queue.splice(i, 1)
+            else {
+                i++
+            }
         }
     }
 

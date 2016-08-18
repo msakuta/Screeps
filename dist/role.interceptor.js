@@ -1,9 +1,13 @@
 var flagNames = ['interceptor', 'interceptor2']
 
+function enemyFilter(c){
+    return !c.owner || !(c.owner.username in Memory.allies)
+}
+
 function findEnemy(){
     for(var r in Game.rooms){
         var room = Game.rooms[r]
-        var enemies = room.find(FIND_HOSTILE_CREEPS)
+        var enemies = room.find(FIND_HOSTILE_CREEPS, {filter: enemyFilter})
         if(0 < enemies.length)
             return room
     }
@@ -26,7 +30,7 @@ module.exports = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        var enemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS)
+        var enemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: enemyFilter})
         if(enemy){
             creep.say('enemy!')
             if(ERR_NOT_IN_RANGE === creep.rangedAttack(enemy) || ERR_NOT_IN_RANGE === creep.attack(enemy)){

@@ -153,7 +153,7 @@ module.exports.loop = function () {
         var towers = room.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}})
         for(var j = 0; j < towers.length; j++) {
             var tower = towers[j]
-            var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+            var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: c => !c.owner || !(c.owner.username in Memory.allies)});
             if(closestHostile) {
                 tower.attack(closestHostile);
             }

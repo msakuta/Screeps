@@ -13,7 +13,7 @@ module.exports = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        var enemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: (s) => s.owner.username !== 'Artritus'})
+        var enemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: (c) => !c.owner || !(c.owner.username in Memory.allies)})
         if(enemy){
             creep.say('enemy!')
             if(ERR_NOT_IN_RANGE === creep.rangedAttack(enemy)){

@@ -1,3 +1,4 @@
+'use strict'
 var roleHarvester = require('role.harvester');
 var roleAttacker = require('role.attacker');
 var roleDigger = require('role.digger');
@@ -33,6 +34,11 @@ function compactBodyString(body){
     return partsStr
 }
 
+/** Try to create a creep from a spawn with body parts
+ *
+ * @param {StructureSpawn} spawn a spawn to spawn a creep from
+ * @returns {boolean} if a creep is successfully created
+ */
 function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
     spawn = spawn || Game.spawns.Spawn1
     var maxCandidate = bodyCandidates.length - (priority || 0)

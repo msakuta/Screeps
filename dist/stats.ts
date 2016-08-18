@@ -6,15 +6,58 @@
  * var mod = require('stats');
  * mod.thing == 'a thing'; // true
  */
+//import * as constants from 'ScreepsAutocomplete/Global/Constants.js'
+//var constants = require('../ScreepsAutocomplete/Global/Constants.js')
+'use strict'
+
+class StructureController {
+}
+
+/**
+ * An object representing the room in which your units and structures are in.
+ * It can be used to look around, find paths, etc.
+ * Every object in the room contains its linked Room instance in the room property.
+ *
+ * @class
+ */
+class Room{
+    /**
+     * The Controller structure of this room, if present, otherwise undefined.
+     *
+     * @type {undefined|StructureController}
+     */
+    controller: undefined | StructureController
+
+    /**
+     * The name of the room.
+     *
+     * @type {string}
+     */
+    name: ""
+
+    /**
+     * Find all objects of the specified type in the room.
+     *
+     * @type {function}
+     *
+     * @param {number} type One of the FIND_* constants.
+     * @param {object} [opts] An object with additional options
+     * @param {object|function|string} [opts.filter] The result list will be filtered using the Lodash.filter method.
+     *
+     * @return {Array} An array with the objects found.
+     */
+    find = function (type: string, opts: Object) { }
+}
 
 var totalEnergyCache = {}
 
-function resetCache(){
+function resetCache() {
     // Make sure previous ticks won't mess up things
     totalEnergyCache = {}
 }
 
-function totalEnergy(room){
+
+function totalEnergy(room: Room){
     if(!totalEnergyCache[room.name]){
         var storedEnergy = 0, storedEnergyCapacity = 0
         let containers = room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE})

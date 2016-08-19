@@ -271,7 +271,7 @@ module.exports.loop = function () {
             // If there is no harvester in a room, bring harvester creation to the front
             // of the queue because he would fill the spawn and extensions for others
             let harvesterIdx
-            if(0 < (harvesterIdx = spawn.memory.queue.indexOf('harvester'))){
+            if(spawn.memory.queue && 0 < (harvesterIdx = spawn.memory.queue.indexOf('harvester'))){
                 spawn.memory.queue.splice(harvesterIdx, 1)
                 spawn.memory.queue.splice(0, 1, 'harvester')
             }

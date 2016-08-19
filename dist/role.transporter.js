@@ -43,7 +43,7 @@ module.exports = {
             //if(false && fromSpawn)
             {
                 let taskIssued = false
-                if(fromSpawn && creep.room === fromSpawn.room || !creep.room.controller || !creep.room.controller.my){
+                if(fromSpawn && creep.room === fromSpawn.room || !creep.room.controller || creep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_SPAWN}}).length === 0){
 
                     var tasks = []
 

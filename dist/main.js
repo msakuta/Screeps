@@ -58,6 +58,8 @@ function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
     }
     else if(0 < queidx) // It's not our turn yet
         return false
+    if(spawn.issued)
+        return
 
     var hasHarvester = 0 < _.filter(Game.creeps, c => c.room === spawn.room && c.memory.role === 'harvester').length
     for(var i = 0; i < maxCandidate; i++){
@@ -78,7 +80,7 @@ function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
         return false;
     }
     var newName = spawn.createCreep(body, undefined, {role: role});
-    if(typeof newName === 'number' && newName < 0 || spawn.issued)
+    if(typeof newName === 'number' && newName < 0)
         return false
     // Signal other roles not to issue another createCreep command, because it would
     // overwrite this one's
@@ -258,6 +260,7 @@ module.exports.loop = function () {
                 diggerCount++
             }
         }
+
         let energy = stats.totalEnergy(spawn.room)
         spawn.room.energy = energy // cache stats for later use
         //console.log('harvesterCost: ' + harvesterCost + ', energy: ' + energy[0] + '/' + energy[2])
@@ -265,6 +268,14 @@ module.exports.loop = function () {
         let sourceCount = spawn.room.find(FIND_SOURCES).length;
 
         if((harvesterCount === 0 || harvesterCount + diggerCount < sourceCount + 1) && harvesterCost < 1000 && totalHarvesterCount < spawnCount * (sourceCount + 1)) {
+            // If there is no harvester in a room, bring harvester creation to the front
+            // of the queue because he would fill the spawn and extensions for others
+            let harvesterIdx
+            if(0 < (harvesterIdx = spawn.memory.queue.indexOf('harvester'))){
+                spawn.memory.queue.splice(harvesterIdx, 1)
+                spawn.memory.queue.splice(0, 1, 'harvester')
+            }
+
             tryCreateCreep('harvester', 0, spawn)
         }
     }

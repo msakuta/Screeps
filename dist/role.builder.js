@@ -15,6 +15,8 @@ function builderFilter(s){
     }
     else if(s instanceof StructureRampart)
         structHits = 50000
+    else if(s instanceof StructureContainer)
+        structHits = s.hitsMax * .8 // Containers frequently degrade, so prevent overreacting
     return s.hits < s.hitsMax && s.hits < structHits
 }
 

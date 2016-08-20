@@ -1,4 +1,4 @@
-var flagNames = ['dig', 'dig2', 'dig4']
+var flagNames = ['dig', 'dig2', 'dig3', 'dig4']
 
 
 var roleDigger = {

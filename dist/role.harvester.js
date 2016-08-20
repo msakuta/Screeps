@@ -459,9 +459,15 @@ var roleHarvester = {
                     (!creep.room.controller || !creep.room.controller.my ||
                         !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => _.sum(s.store) < s.storeCapacity)))
                 {
-                    var dig = Game.flags.dig
-                    if(dig){
-                        creep.moveTo(dig)
+                    // If there is a room with a Spawn but few upgraders, change the role to upgrader to support the room's control.
+                    let noupgraderRooms = _.filter(Game.rooms, r => r.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_SPAWN}}).length &&
+                        r.find(FIND_MY_CREEPS, {filter: c => c.memory.role === 'upgrader'}).length < 3)
+                    if(noupgraderRooms.length){
+                        let noupgraderRoom = noupgraderRooms[0]
+                        if(noupgraderRoom === creep.room)
+                            creep.memory.role = 'upgrader'
+                        else
+                            creep.moveTo(noupgraderRoom)
                     }
                     else{
                     // If there's nothing to do, find a room with least working force
@@ -481,8 +487,9 @@ var roleHarvester = {
                         }
                     }
                     //console.log(leastSpawn + ' ' + leastHarvesterCount)
-                    if(leastSpawn)
+                    if(leastSpawn){
                         creep.moveTo(leastSpawn)
+                    }
                     creep.memory.task = 'harvest'
                     }
 

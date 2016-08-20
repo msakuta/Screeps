@@ -44,11 +44,19 @@ module.exports = {
                 creep.heal(creep)
             }
 
+            let damagedAlly = creep.pos.findClosestByRange(FIND_MY_CREEPS, {filter: c => c !== creep && c.hits < c.hitsMax})
+            if(damagedAlly){
+                if(ERR_NOT_IN_RANGE === creep.heal(damagedAlly)){
+                    creep.moveTo(damagedAlly)
+                }
+                return
+            }
+
             var enemyRoom = findEnemy()
             if(enemyRoom){
                 creep.moveTo(new RoomPosition(25, 25, enemyRoom.name))
             }
-            if(!creep.memory.flag){
+            else if(!creep.memory.flag){
                 var flagWatchers = []
 
                 for(let i = 0; i < flagNames.length; i++){

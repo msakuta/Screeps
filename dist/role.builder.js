@@ -7,7 +7,7 @@ function builderFilter(s){
     if(Game.flags.norepair && Game.flags.norepair.pos.isEqualTo(s.pos))
         return false
     if(s.structureType === STRUCTURE_ROAD)
-        structHits = 3000
+        structHits = s.hitsMax * .6
     else if(s.structureType === STRUCTURE_WALL){
         if(39 <= s.pos.x)
             return false
@@ -29,7 +29,7 @@ function towerBuilderFilter(s){
     if(Game.flags.norepair && Game.flags.norepair.pos.isEqualTo(s.pos))
         return false
     if(s.structureType === STRUCTURE_ROAD)
-        structHits = 4000
+        structHits = s.hitsMax * .8
     else if(s.structureType === STRUCTURE_WALL){
         if(39 <= s.pos.x)
             return false

@@ -186,7 +186,7 @@ var roleHarvester = {
                     creep.memory.task = 'harvest'
             }
 
-            if(_.sum(creep.carry) < creep.carryCapacity){
+            if(0 < freeCapacity){
                 // Always try to find and collect dropped resources
                 var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
                 var path = target ? creep.pos.findPathTo(target) : null
@@ -194,7 +194,8 @@ var roleHarvester = {
                 if(target && path && path.length && totalPotentialHarvests(creep, path.length) < target.amount){
                     tasks.push({
                         name: 'DropResource',
-                        cost: creep.pos.getRangeTo(target) / Math.min(freeCapacity, target.amount),
+                        // Prefer dropped resources because they degrade
+                        cost: .5 * creep.pos.getRangeTo(target) / Math.min(freeCapacity, target.amount),
                         target: target,
                         run: (target) => {
                             if(ERR_NOT_IN_RANGE === creep.pickup(target))

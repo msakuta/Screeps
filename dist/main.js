@@ -122,8 +122,13 @@ function calcStoredEnergy(room){
 
 function logStats(){
     // Only record once in 10 ticks
-    if(Game.time % 10 !== 0)
+    if(Game.time % 10 !== 0){
+        // Strictly, we don't need to keep the value for every tick until accumulation.
+        // We could just record total value and sum of those values and divide
+        // at the end.
+        appendHistory('tempcpu', Game.cpu.getUsed())
         return
+    }
     var energy = 0, energyCapacity = 0
     var storedEnergy = 0, storedEnergyCapacity = 0
     var source = 0
@@ -154,7 +159,18 @@ function logStats(){
     appendHistory('energyHistory', energy)
     appendHistory('storedEnergyHistory', storedEnergy)
     appendHistory('sourceHistory', source)
-    appendHistory('cpuHistory', Game.cpu.getUsed())
+    appendHistory('cpuHistory', (function(){
+        // Recaord average of CPU usage over last few ticks.
+        // Once we record the value, the temporary array for last few ticks is
+        // no longer necessary.
+        if(Memory.tempcpu && Memory.tempcpu.length){
+            let ret = _.sum(Memory.tempcpu) / Memory.tempcpu.length
+            delete Memory.tempcpu
+            return ret
+        }
+        else
+            return Game.cpu.getUsed()
+        })())
 }
 
 

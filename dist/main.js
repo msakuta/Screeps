@@ -121,6 +121,9 @@ function calcStoredEnergy(room){
 }
 
 function logStats(){
+    // Only record once in 10 ticks
+    if(Game.time % 10 !== 0)
+        return
     var energy = 0, energyCapacity = 0
     var storedEnergy = 0, storedEnergyCapacity = 0
     var source = 0
@@ -147,6 +150,7 @@ function logStats(){
             Memory[key].splice(0,1)
     }
 
+    appendHistory('timeHistory', Game.time)
     appendHistory('energyHistory', energy)
     appendHistory('storedEnergyHistory', storedEnergy)
     appendHistory('sourceHistory', source)

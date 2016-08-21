@@ -164,7 +164,11 @@ function logStats(){
         // Once we record the value, the temporary array for last few ticks is
         // no longer necessary.
         if(Memory.tempcpu && Memory.tempcpu.length){
-            let ret = _.sum(Memory.tempcpu) / Memory.tempcpu.length
+            // Truncate values to 2 decimal places to make the data more compact.
+            // After all, the value doesn't have much precision.
+            // Strangely it makes memory space efficient, and more importantly,
+            // predictable, all because the values are serialized in JSON.
+            let ret = Math.round(_.sum(Memory.tempcpu) / Memory.tempcpu.length * 100) / 100
             delete Memory.tempcpu
             return ret
         }

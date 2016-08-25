@@ -8,11 +8,8 @@ function builderFilter(s){
         return false
     if(s.structureType === STRUCTURE_ROAD)
         structHits = s.hitsMax * .6
-    else if(s.structureType === STRUCTURE_WALL){
-        if(39 <= s.pos.x)
-            return false
+    else if(s.structureType === STRUCTURE_WALL)
         structHits = 50000
-    }
     else if(s instanceof StructureRampart)
         structHits = 50000
     else if(s instanceof StructureContainer)
@@ -31,8 +28,6 @@ function towerBuilderFilter(s){
     if(s.structureType === STRUCTURE_ROAD)
         structHits = s.hitsMax * .8
     else if(s.structureType === STRUCTURE_WALL){
-        if(39 <= s.pos.x)
-            return false
         // The more energy in storage, the more expenses to the defense.
         // It is reasonable to make investments be proportional to asset values.
         // That said, the minimum value for strength should be more than zero

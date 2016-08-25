@@ -162,7 +162,7 @@ module.exports = {
                     let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: s => (s.structureType === STRUCTURE_STORAGE ||
                             s.structureType === STRUCTURE_CONTAINER) &&
-                            s.store.energy < s.storeCapacity ||
+                            _.sum(s.store) < s.storeCapacity ||
                             // We need at least 100 space in order to transport energy to a link
                             // because it would be so inefficient unless we do.
                             (s.structureType === STRUCTURE_LINK && s.source &&

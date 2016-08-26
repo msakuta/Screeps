@@ -121,8 +121,8 @@ function calcStoredEnergy(room){
 }
 
 function logStats(){
-    // Only record once in 10 ticks
-    if(Game.time % 10 !== 0){
+    // Only record once in 100 ticks
+    if(Game.time % 100 !== 0){
         // Strictly, we don't need to keep the value for every tick until accumulation.
         // We could just record total value and sum of those values and divide
         // at the end.

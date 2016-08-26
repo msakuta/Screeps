@@ -45,12 +45,38 @@ module.exports = {
                 creep.memory.task = 'store'
                 return
             }
+
+            // Find and memorize flag
+            if(!creep.memory.flag){
+                for(let i = 0; i < flagNames.length; i++){
+                    let flag = Game.flags[flagNames[i]]
+
+                    if(!flag || !flag.room || 0 < flag.room.find(FIND_MY_STRUCTURES, {filter: s => s.structureType === STRUCTURE_SPAWN}).length)
+                        continue
+
+                    if((function(){
+                        for(let name in Game.creeps){
+                            let creep2 = Game.creeps[name]
+                            if(creep2 !== creep && creep2.memory.role === 'transporter' && creep2.memory.flag === flag.name)
+                                return true
+                        }
+                        return false
+                    })())
+                        continue
+
+                    creep.memory.flag = flag.name
+                }
+            }
+
             var fromSpawn = null
             var freeCapacity = creep.carryCapacity - _.sum(creep.carry)
             //if(false && fromSpawn)
             {
                 let taskIssued = false
-                if(fromSpawn && creep.room === fromSpawn.room || !creep.room.controller || creep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_SPAWN}}).length === 0){
+                if(creep.memory.flag && Game.flags[creep.memory.flag] && Game.flags[creep.memory.flag].room === creep.room &&
+                    (!creep.room.controller ||
+                    creep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_SPAWN}}).length === 0))
+                {
 
                     var tasks = []
 
@@ -135,8 +161,8 @@ module.exports = {
                 if(!taskIssued){
                     if(fromSpawn)
                         creep.moveTo(fromSpawn)
-                    else if(Game.flags.dig)
-                        creep.moveTo(Game.flags.dig)
+                    else if(creep.memory.flag !== undefined)
+                        creep.moveTo(Game.flags[creep.memory.flag])
                 }
             }
         }

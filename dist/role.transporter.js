@@ -1,3 +1,4 @@
+var flagNames = ['dig', 'dig2', 'dig3', 'dig4', 'dig5']
 
 /// We don't want to waste time for picking up tiny amount of energy by diverting from
 /// the main course, but if it's very close to the creep, it's worth bothering.
@@ -14,6 +15,12 @@ function walkCost(creep, dist){
     return carryParts * dist / 10
 }
 
+function findInventoryResource(store){
+    for(var k in store)
+        if(0 < store[k])
+            return k
+    return null
+}
 
 module.exports = {
 
@@ -76,10 +83,12 @@ module.exports = {
                         for(let i = 0 ; i < containers.length; i++){
                             tasks.push({
                                 name: 'Container',
-                                cost: creep.pos.getRangeTo(containers[i]) / Math.min(freeCapacity, containers[i].store.energy),
+                                cost: creep.pos.getRangeTo(containers[i]) / Math.min(freeCapacity, _.sum(containers[i].store)),
                                 target: containers[i],
                                 run: container => {
-                                    if(creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
+                                    // Grab whatever resource found
+                                    var resource = findInventoryResource(container.store)
+                                    if(creep.withdraw(container, resource) === ERR_NOT_IN_RANGE)
                                         creep.moveTo(container)
                                 }
                             })
@@ -159,18 +168,20 @@ module.exports = {
             }
             if(toSpawn){
                 if(creep.room === toSpawn.room){
+                    var resource = findInventoryResource(creep.carry)
                     let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                        filter: s => (s.structureType === STRUCTURE_STORAGE ||
+                        filter: s => resource === RESOURCE_ENERGY ? (s.structureType === STRUCTURE_STORAGE ||
                             s.structureType === STRUCTURE_CONTAINER) &&
                             _.sum(s.store) < s.storeCapacity ||
                             // We need at least 100 space in order to transport energy to a link
                             // because it would be so inefficient unless we do.
                             (s.structureType === STRUCTURE_LINK && s.source &&
                             Math.min(creep.carry.energy, 100) < s.energyCapacity - s.energy &&
-                            creep.carry.energy < linkSpace(s))
+                            creep.carry.energy < linkSpace(s)) :
+                            s.structureType === STRUCTURE_STORAGE
                     })
                     let amount = creep.carry.energy
-                    if(creep.transfer(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE){
+                    if(creep.transfer(container, resource) === ERR_NOT_IN_RANGE){
                         creep.moveTo(container)
                     }
                     else

@@ -394,11 +394,15 @@ module.exports.loop = function () {
 
     // Spawn rangers
     if(rangers.length < maxRangers) {
-        tryCreateCreepInt('ranger', 0, [
-            [TOUGH,TOUGH,TOUGH,TOUGH,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE],
-            [TOUGH,TOUGH,TOUGH,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE],
-            [RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE],
-        ])
+        for(let key in Game.spawns){
+            var spawn = Game.spawns[key]
+            if(tryCreateCreepInt('ranger', 0, [
+                [TOUGH,TOUGH,TOUGH,TOUGH,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE],
+                [TOUGH,TOUGH,TOUGH,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE,RANGED_ATTACK,MOVE,MOVE],
+                [RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE,RANGED_ATTACK,MOVE],
+            ], spawn))
+                break
+        }
     }
 
     var interceptors = _.filter(Game.creeps, (creep) => creep.memory.role == 'interceptor');
@@ -406,12 +410,16 @@ module.exports.loop = function () {
 
     // Spawn interceptors
     if(interceptors.length < maxInterceptors) {
-        tryCreateCreepInt('interceptor', 0, [
-            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
-            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
-            [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
-            [MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
-        ])
+        for(let key in Game.spawns){
+            var spawn = Game.spawns[key]
+            if(tryCreateCreepInt('interceptor', 0, [
+                [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
+                [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
+                [TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
+                [MOVE,MOVE,MOVE,RANGED_ATTACK,ATTACK,RANGED_ATTACK,MOVE,HEAL],
+            ], spawn))
+                break
+        }
     }
 
     // Spawn upgraders

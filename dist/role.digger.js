@@ -98,6 +98,12 @@ var roleDigger = {
                 function findAndHarvest(){
                     var source = creep.pos.findClosestByRange(FIND_SOURCES,
                         s => 0 < s.energy && s.pos.getRangeTo(creep.pos) <= 2)
+                    if(!source){
+                        source = creep.pos.findClosestByRange(FIND_STRUCTURES,
+                            {filter: s => s.structureType === STRUCTURE_POWER_BANK && 0 < s.power
+                                && s.pos.getRangeTo(creep.pos) <= 2})
+                        console.log(creep.name + ": trying to find power: " + source)
+                    }
                     if(source){
                         if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
                             creep.moveTo(source);

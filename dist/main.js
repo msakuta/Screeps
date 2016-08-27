@@ -495,8 +495,14 @@ module.exports.loop = function () {
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
         var run = roles[creep.memory.role]
-        if(run)
-            run(creep)
+        if(run){
+            try{
+                run(creep)
+            }
+            catch(e){
+                console.log("ERROR: Exception on " + creep.name + ": ", e.stack)
+            }
+        }
     }
 
     for(let r in Game.rooms){

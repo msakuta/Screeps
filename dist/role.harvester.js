@@ -293,18 +293,26 @@ var roleHarvester = {
                     // into the storage, not the containers.
                     let target = findTarget(0 < _.size(creep.carry) - creep.carry.energy ?
                         [STRUCTURE_STORAGE, STRUCTURE_TERMINAL] :
-                        [STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => _.sum(s.store) < s.storeCapacity)
+                        [STRUCTURE_CONTAINER, STRUCTURE_STORAGE, STRUCTURE_TERMINAL], s => _.sum(s.store) < s.storeCapacity)
                     if(target){
+                        // Dump all types of resources
+                        let resource = (() => {
+                            if(0 < _.sum(creep.carry) - creep.carry.energy){
+                                for(var it in creep.carry){
+                                    if(it !== RESOURCE_ENERGY)
+                                        return it
+                                }
+                            }
+                            else
+                                return RESOURCE_ENERGY
+                        })()
                         tasks.push({
                             name: 'DumpContainer',
-                            cost: 2 * creep.pos.getRangeTo(target) / Math.min(_.size(creep.carry), target.storeCapacity - _.sum(target.store)),
+                            cost: 2 * creep.pos.getRangeTo(target) / Math.min(creep.carry[resource], target.storeCapacity - _.sum(target.store)),
                             target: target,
                             run: (target) => {
-                                // Dump all types of resources
-                                for(let res in creep.carry){
-                                    if(creep.transfer(target, res) == ERR_NOT_IN_RANGE) {
-                                        creep.moveTo(target);
-                                    }
+                                if(creep.transfer(target, resource) === ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(target);
                                 }
                                 creep.memory.resting = undefined
                             }

@@ -254,6 +254,43 @@ module.exports.loop = function () {
         }
     }
 
+    // Process terminals and labs
+    let terminals = []
+    let srcTerminal = null
+    let destTerminal = null
+    for(let name in Game.rooms){
+        let room = Game.rooms[name]
+        if(!room.controller || !room.controller.my)
+            continue
+        let labs = room.find(FIND_MY_STRUCTURES, {filter: s => s.structureType === STRUCTURE_LAB})
+        // Always labs[0] and labs[1] are inputs and labs[2] is the output.
+        if(3 <= labs.length && 0 < labs[0].mineralAmount && 0 < labs[1].mineralAmount && labs[2].mineralAmount < labs[2].mineralCapacity){
+            labs[2].runReaction(labs[0], labs[1])
+        }
+
+        // Determine source and destination terminals
+        if(room.terminal && room.terminal.my){
+            terminals.push(room.terminal)
+            if(0 < labs.length){
+                destTerminal = room.terminal
+            }
+            else if(0 < _.sum(room.terminal.store) - room.terminal.store.energy)
+                srcTerminal = room.terminal
+        }
+    }
+
+    // If both source and destination are prepared, send minerals
+    if(srcTerminal && destTerminal){
+        for(let resource in srcTerminal.store){
+            // You can't send resources with amount less than 100
+            if(resource === RESOURCE_ENERGY || srcTerminal.store[resource] < 100)
+                continue
+            let res = srcTerminal.send(resource, srcTerminal.store[resource], destTerminal.room.name)
+            if(res < 0)
+                console.log('terminal send failed! ' + resource + ' ' + srcTerminal.store[resource] + ' ' + res)
+        }
+    }
+
 
     // Reset spawn demands in case garbage remains in the VM
     for(let name in Game.spawns){

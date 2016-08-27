@@ -285,26 +285,48 @@ var roleHarvester = {
             }
 
             // Dump to containers only if the room is controlled by me.
-            if(creep.memory.task !== 'harvest' && 0 < _.sum(creep.carry) && creep.room.controller && creep.room.controller.my &&
-                (0 < _.sum(creep.carry) - creep.carry.energy || creep.room.energyAvailable === creep.room.energyCapacityAvailable)){
-                // If this creep has something other than energy, always dump it
-                // into the storage, not the containers.
-                let target = findTarget(0 < _.size(creep.carry) - creep.carry.energy ? [STRUCTURE_STORAGE] : [STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => _.sum(s.store) < s.storeCapacity)
-                if(target){
-                    tasks.push({
-                        name: 'DumpContainer',
-                        cost: 2 * creep.pos.getRangeTo(target) / Math.min(_.size(creep.carry), target.storeCapacity - _.sum(target.store)),
-                        target: target,
-                        run: (target) => {
-                            // Dump all types of resources
-                            for(let res in creep.carry){
-                                if(creep.transfer(target, res) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(target);
+            if(creep.memory.task !== 'harvest' && 0 < _.sum(creep.carry)){
+
+                if(creep.room.controller && creep.room.controller.my &&
+                    (0 < _.sum(creep.carry) - creep.carry.energy || creep.room.energyAvailable === creep.room.energyCapacityAvailable)){
+                    // If this creep has something other than energy, always dump it
+                    // into the storage, not the containers.
+                    let target = findTarget(0 < _.size(creep.carry) - creep.carry.energy ?
+                        [STRUCTURE_STORAGE, STRUCTURE_TERMINAL] :
+                        [STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => _.sum(s.store) < s.storeCapacity)
+                    if(target){
+                        tasks.push({
+                            name: 'DumpContainer',
+                            cost: 2 * creep.pos.getRangeTo(target) / Math.min(_.size(creep.carry), target.storeCapacity - _.sum(target.store)),
+                            target: target,
+                            run: (target) => {
+                                // Dump all types of resources
+                                for(let res in creep.carry){
+                                    if(creep.transfer(target, res) == ERR_NOT_IN_RANGE) {
+                                        creep.moveTo(target);
+                                    }
                                 }
+                                creep.memory.resting = undefined
                             }
-                            creep.memory.resting = undefined
-                        }
-                    })
+                        })
+                    }
+                }
+
+                // Very low priority action to move resources to a spawn, if this creep has some.
+                // This is necessary to prevent creeps from standing still with resources held
+                // in a remote room.
+                // I'd like to find or measure distance to the closest room with my spawn, but
+                // there's no straightforward way to do that.
+                if(!creep.room.controller || !creep.room.controller.my){
+                    for(let name in Game.spawns){
+                        tasks.push({
+                            name: 'MoveToSpawn',
+                            cost: 2 * 50 / _.size(creep.carry), // Assume the room is as distant as 50 squares.
+                            target: Game.spawns[name],
+                            run: target => creep.moveTo(target)
+                        })
+                        break
+                    }
                 }
             }
 

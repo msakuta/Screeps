@@ -158,7 +158,7 @@ var roleBuilder = {
                     }
                 }
                 if(!creep.memory.target){
-                    creep.memory.task = 'harvest';
+                    creep.memory.task = undefined
                     creep.memory.target = undefined
                 }
             }

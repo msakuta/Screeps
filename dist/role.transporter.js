@@ -217,6 +217,15 @@ module.exports = {
                     creep.moveTo(toSpawn)
                 }
             }
+
+            // Try to repair damaged road on the way, in order to reduce necessity
+            // to send builders to remote locations.
+            // It won't slow this creep down since repairing and moving can be
+            // performed simultaneously.
+            let damagedRoads = creep.pos.findInRange(FIND_STRUCTURES, 3, {filter: s => s.structureType === STRUCTURE_ROAD && s.hits < s.hitsMax})
+            if(0 < damagedRoads.length){
+                creep.repair(damagedRoads[0])
+            }
         }
         else{
             creep.memory.task = 'gather'

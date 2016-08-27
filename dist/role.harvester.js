@@ -339,7 +339,7 @@ var roleHarvester = {
                     return best
                 })
                 if(!isFinite(bestTask.cost))
-                    console.log("WARNING: infinite cost detected!")
+                    console.log("WARNING: infinite cost detected! [" + bestTask.name + "]")
                 //let costs = _.reduce(tasks, (str, task) => str += '[' + task.name +': ' + task.cost + '],', '')
                 //console.log(creep.name + ': tasks: ' + tasks.length + ': bestTask: ' + bestTask.name + ', ' + bestTask.cost + ', ' + costs + ', ' + bestTask.target)
                 bestTask.run(bestTask.target)

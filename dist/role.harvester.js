@@ -261,6 +261,60 @@ var roleHarvester = {
                 }
             }
 
+            // Find and feed labs
+            let labs = creep.room.find(FIND_MY_STRUCTURES, {filter: s => s.structureType === STRUCTURE_LAB})
+            let labOxyFull = true
+            let labKeanFull = true
+            if(3 <= labs.length){
+                let target, resource
+                if(creep.carry[RESOURCE_OXYGEN])
+                    target = labs[0], resource = RESOURCE_OXYGEN
+                else if(creep.carry[RESOURCE_KEANIUM])
+                    target = labs[1], resource = RESOURCE_KEANIUM
+                if(target){
+                    tasks.push({
+                        name: 'StoreLab',
+                        cost: (creep.pos.getRangeTo(target) - .5) / Math.min(creep.carry[resource], target.mineralCapacity - target.mineralAmount),
+                        target: target,
+                        run: target => {
+                            if(ERR_NOT_IN_RANGE === creep.transfer(target, resource))
+                                creep.moveTo(target)
+                        }
+                    })
+                }
+
+                labOxyFull = labs[0].mineralCapacity === labs[0].mineralAmount
+                labKeanFull = labs[1].mineralCapacity === labs[1].mineralAmount
+                let labsFull = [labOxyFull, labKeanFull]
+
+                if(50 < freeCapacity){
+                    let minerals = [RESOURCE_OXYGEN, RESOURCE_KEANIUM]
+                    for(let m = 0; m < minerals.length; m++){
+                        target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                            filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE || s.structureType === STRUCTURE_TERMINAL) &&
+                                !labsFull[m] && s.store[minerals[m]]
+                        })
+                        let destLab = labs[m]
+                        let capacity = destLab.mineralCapacity - destLab.mineralAmount
+                        //console.log(creep.name + ' WithdrawMineral target: ' + target + ' ' + minerals[m])
+                        if(target && target.store[minerals[m]] && 0 < capacity){
+                            let resourceType = minerals[m]
+                            let resource = target.store[minerals[m]]
+                            tasks.push({
+                                name: 'WithdrawMineral',
+                                cost: creep.pos.getRangeTo(target) / Math.min(freeCapacity, resource),
+                                target: target,
+                                run: target => {
+                                    if(ERR_NOT_IN_RANGE === creep.withdraw(target, resourceType))
+                                        creep.moveTo(target)
+                                }
+                            })
+                            //console.log('Withdraw ' + target + ' ' + minerals[m] + ' cost: ' + resource + ' ' + tasks[tasks.length-1].cost)
+                        }
+                    }
+                }
+            }
+
             if(creep.memory.task !== 'harvest' && 50 <= creep.carry.energy){
                 var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: s => (s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_SPAWN) && s.energy < s.energyCapacity
@@ -299,7 +353,7 @@ var roleHarvester = {
                         let resource = (() => {
                             if(0 < _.sum(creep.carry) - creep.carry.energy){
                                 for(var it in creep.carry){
-                                    if(it !== RESOURCE_ENERGY)
+                                    if(it !== RESOURCE_ENERGY && (labOxyFull && it === RESOURCE_OXYGEN || labKeanFull && it === RESOURCE_KEANIUM))
                                         return it
                                 }
                             }

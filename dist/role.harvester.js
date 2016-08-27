@@ -230,13 +230,32 @@ var roleHarvester = {
                 // harvestable energy per tick
                 let workParts = creep.getActiveBodyparts(WORK)
                 if(0 < workParts){
-                    var target = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => sourcePredicate(s, creep)})
+                    let target = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => sourcePredicate(s, creep)})
                     if(target && 0 < target.energy){
                         tasks.push({
                             name: 'Source',
                             cost: creep.pos.getRangeTo(target) / Math.min(target.energy, workParts * 2) * 10,
                             target: target,
                             run: (target) => harvest(target)
+                        })
+                    }
+
+                    function mineralFilter(s){
+                        if(s.mineralAmount === 0)
+                            return false
+                        var extractor = _.filter(s.room.lookAt(s), s => s.type === 'structure' && s.structure.structureType === STRUCTURE_EXTRACTOR)
+                        //if(extractor.length === 1)
+                        //    console.log('extractor on mineral ' + s + ': ' + extractor.length)
+                        return extractor.length === 1
+                    }
+
+                    target = creep.pos.findClosestByRange(FIND_MINERALS, {filter: mineralFilter})
+                    if(target){
+                        tasks.push({
+                            name: 'Mineral',
+                            cost: creep.pos.getRangeTo(target) / Math.min(target.mineralAmount, workParts * 2) * 10,
+                            target: target,
+                            run: harvest
                         })
                     }
                 }
@@ -351,18 +370,8 @@ var roleHarvester = {
                                 return harvest(creep.pos.findClosestByRange(FIND_SOURCES, {filter: sourcePredicate}))
                             }
 
-                            function mineralFilter(s){
-                                if(s.mineralAmount === 0)
-                                    return false
-                                var extractor = _.filter(s.room.lookAt(s), s => s.type === 'structure' && s.structure.structureType === STRUCTURE_EXTRACTOR)
-                                //if(extractor.length === 1)
-                                //    console.log('extractor on mineral ' + s + ': ' + extractor.length)
-                                return extractor.length === 1
-                            }
-
                             if(findAndHarvest());
-                            else if(!harvest(creep.pos.findClosestByRange(FIND_MINERALS, {filter: mineralFilter}))){
-
+                            else{
                                 if(Game.flags.extra !== undefined){
                                     creep.moveTo(Game.flags.extra)
     /*                                    let flagroom = Game.flags.extra.room

@@ -55,6 +55,16 @@ var roleUpgrader = {
                     creep.memory.spawn = bestSpawn.id
                 }
             }
+
+            // Try to repair damaged road on the way, in order to reduce necessity
+            // to send builders to remote locations or use inefficient turrets.
+            // It won't slow this creep down since repairing and moving can be
+            // performed simultaneously. But it will take precedence if this creep
+            // is trying to do upgrade.
+            let damagedRoads = creep.pos.findInRange(FIND_STRUCTURES, 3, {filter: s => s.structureType === STRUCTURE_ROAD && s.hits < s.hitsMax})
+            if(0 < damagedRoads.length){
+                creep.repair(damagedRoads[0])
+            }
         }
         else{
             var targets = creep.room.find(FIND_DROPPED_RESOURCES);

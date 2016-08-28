@@ -267,6 +267,11 @@ module.exports.loop = function () {
         if(3 <= labs.length && 0 < labs[0].mineralAmount && 0 < labs[1].mineralAmount && labs[2].mineralAmount < labs[2].mineralCapacity){
             labs[2].runReaction(labs[0], labs[1])
         }
+        if(3 <= labs.length && labs[2].mineralType === 'KO' && 10 <= labs[2].mineralAmount){
+            let nearbyCreeps = labs[2].pos.findInRange(FIND_MY_CREEPS, 2, {filter: c => c.memory.role === 'builder' || c.memory.role === 'upgrader'})
+            if(0 < nearbyCreeps.length)
+                labs[2].boostCreep(nearbyCreeps[0])
+        }
 
         // Determine source and destination terminals
         if(room.terminal && room.terminal.my){

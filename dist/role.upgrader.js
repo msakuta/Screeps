@@ -5,6 +5,19 @@ var roleUpgrader = {
     /** @param {Creep} creep **/
     run: function(creep) {
 
+        if(creep.room.controller && creep.room.controller.my &&
+            !_.filter(creep.body, b => b.type === WORK && b.boost).length)
+        {
+            let labs = creep.room.find(FIND_MY_STRUCTURES, {filter: s => s.structureType === STRUCTURE_LAB})
+            for(let i = 0; i < labs.length; i++){
+                if(labs[i].mineralType === 'UO' && 0 < labs[i].mineralAmount){
+                    creep.transfer(labs[i], RESOURCE_ENERGY)
+                    creep.moveTo(labs[i]) // Get close no matter energy transfer succeed or not
+                    return
+                }
+            }
+        }
+
         if(creep.memory.task !== 'harvest' && creep.carry.energy === 0) {
             creep.memory.task = 'harvest';
             creep.memory.spawn = undefined; // Forget about previous spawn in order to opitmize efficiency

@@ -1,4 +1,4 @@
-var flagNames = ['dig', 'dig2', 'dig3', 'dig4', 'dig5']
+var flagNames = ['dig', 'dig2', 'dig3', 'dig4', 'dig5', 'dig6']
 
 /// We don't want to waste time for picking up tiny amount of energy by diverting from
 /// the main course, but if it's very close to the creep, it's worth bothering.

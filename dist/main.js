@@ -488,7 +488,7 @@ module.exports.loop = function () {
     let transporters = _.filter(Game.creeps, creep => creep.memory.role === 'transporter').length
     for(let spawnName in Game.spawns){
         let spawn = Game.spawns[spawnName]
-        if(transporters < 3){
+        if(transporters < 4){
             // Create body candidates with as much capacity as possible
             let transporterBodyCandidates = []
             for(let i = 10; 0 <= i; i--){

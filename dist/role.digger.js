@@ -1,5 +1,18 @@
 var flagNames = ['dig', 'dig2', 'dig3', 'dig4', 'dig5', 'dig6']
 
+// Might be better to do prototyping
+function getEnergy(struct){
+    return struct instanceof StructureLink ? struct.energy : struct.store.energy
+}
+
+function getCapacity(struct){
+    return struct instanceof StructureLink ? struct.energyCapacity : struct.storeCapacity
+}
+
+function getSpace(struct){
+    return struct instanceof StructureLink ? struct.energyCapacity - struct.energy : struct.storeCapacity - _.sum(struct.store)
+}
+
 
 var roleDigger = {
 
@@ -34,15 +47,16 @@ var roleDigger = {
         let adjacentObjs = creep.room.lookAtArea(Math.max(0, creep.pos.y - 1), Math.max(0, creep.pos.x - 1), Math.min(49, creep.pos.y + 1), Math.min(49, creep.pos.x + 1), true)
         let structs = _.filter(adjacentObjs,
             s => s.type === 'structure' && (
-                s.structure.structureType === STRUCTURE_CONTAINER && s.structure.store.energy < s.structure.storeCapacity ||
-                s.structure.structureType === STRUCTURE_LINK && s.structure.energy < s.structure.energyCapacity))
+                s.structure.structureType === STRUCTURE_CONTAINER || s.structure.structureType === STRUCTURE_LINK && getSpace(s.structure)))
         // Prefer a link
-        let stile = _.reduce(structs, (best, s) => s.structure.structureType === STRUCTURE_LINK ? s : best)
+        let stile = _.reduce(structs, (best, s) => s.structure.structureType === STRUCTURE_LINK ? s : best, null)
 
-        // Find and drop energy into adjacent container
+        // Find a structure
+        let struct = !stile ? 0 < structs.length ? structs[0].structure : null : stile.structure
+
+        // Find and drop energy into adjacent container or link
         if(0 < creep.carry.energy){
-            if(stile && stile.structure){
-                let struct = stile.structure
+            if(struct){
                 if(struct.hits < struct.hitsMax)
                     creep.repair(struct)
                 else
@@ -57,12 +71,12 @@ var roleDigger = {
                     creep.pos.createConstructionSite(STRUCTURE_CONTAINER)
             }
         }
-        else if(stile && stile.structure.structureType === STRUCTURE_LINK && stile.structure.energy < stile.structure.energyCapacity){
+        else if(struct && 0 < getSpace(struct)){
             // If there's an adjacent link to the creep and a dropped energy,
             // pick it up
-            let dropResources = _.filter(adjacentObjs, s => s.type === FIND_DROPPED_ENERGY)
+            let dropResources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 2)
             if(0 < dropResources.length){
-                creep.pickup(dropResources)
+                creep.pickup(dropResources[0])
             }
         }
 

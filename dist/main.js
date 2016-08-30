@@ -488,7 +488,7 @@ module.exports.loop = function () {
         if(transporters < 4){
             // Create body candidates with as much capacity as possible
             let transporterBodyCandidates = []
-            for(let i = 15; 0 <= i; i--){
+            for(let i = 13; 0 <= i; i--){
                 let body = [WORK,CARRY,MOVE]
                 for(let j = 0; j < i; j++){
                     body.push(CARRY,CARRY,MOVE)

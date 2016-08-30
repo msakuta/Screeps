@@ -60,9 +60,9 @@ var roleDigger = {
         else if(stile && stile.structure.structureType === STRUCTURE_LINK && stile.structure.energy < stile.structure.energyCapacity){
             // If there's an adjacent link to the creep and a dropped energy,
             // pick it up
-            let dropResources = _.filter(adjacentObjs, s => s.type === FIND_DROPPED_ENERGY)
+            let dropResources = _.filter(adjacentObjs, s => s.type === 'resource' && s.resource.energy)
             if(0 < dropResources.length){
-                creep.pickup(dropResources)
+                creep.pickup(dropResources[0].resource)
             }
         }
 

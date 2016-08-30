@@ -48,7 +48,11 @@ var roleUpgrader = {
             // It won't slow this creep down since repairing and moving can be
             // performed simultaneously. But it will take precedence if this creep
             // is trying to do upgrade.
-            let damagedRoads = creep.pos.findInRange(FIND_STRUCTURES, 3, {filter: s => s.structureType === STRUCTURE_ROAD && s.hits < s.hitsMax})
+            // Upgraders tend to have many work body parts, which means energy would
+            // be wasted if they try to repair tiniest amount of hits.
+            let damagedRoads = creep.pos.findInRange(FIND_STRUCTURES, 3, {
+                filter: s => s.structureType === STRUCTURE_ROAD && s.hits < s.hitsMax - 100 * creep.getActiveBodyparts(WORK)
+            })
             if(0 < damagedRoads.length){
                 creep.repair(damagedRoads[0])
             }

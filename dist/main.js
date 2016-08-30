@@ -370,9 +370,11 @@ module.exports.loop = function () {
     // Technically it may have benefit because claimers can also reserve, but we'll ignore it for now.
     var maxClaimers = (() => {
         var ret = 0
-        for(let i = 0; i < roleClaimer.flagNames.length; i++)
-            if(Game.flags[roleClaimer.flagNames[i]])
+        for(let i = 0; i < roleClaimer.flagNames.length; i++){
+            let theflag = Game.flags[roleClaimer.flagNames[i]]
+            if(theflag && theflag.room.controller && (!theflag.room.controller.reservation || theflag.room.controller.reservation.ticksToEnd < 4500))
                 ret++
+        }
         return ret
     })()
 

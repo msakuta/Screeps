@@ -79,6 +79,10 @@ var roleBuilder = {
                 //creep.say('harvesting');
             }
         }
+        else if(0 < _.sum(creep.carry) - creep.carry.energy){
+            // Store the minerals before trying to build
+            creep.memory.task = undefined
+        }
         else if(creep.memory.task !== 'build' && _.sum(creep.carry) === creep.carryCapacity){
             var targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
             var targets2 = creep.room.find(FIND_STRUCTURES, {filter: builderFilter});

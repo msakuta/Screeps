@@ -74,9 +74,9 @@ var roleDigger = {
         else if(struct && 0 < getSpace(struct)){
             // If there's an adjacent link to the creep and a dropped energy,
             // pick it up
-            let dropResources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 2)
+            let dropResources = _.filter(adjacentObjs, s => s.type === 'resource' && s.resource.energy)
             if(0 < dropResources.length){
-                creep.pickup(dropResources[0])
+                creep.pickup(dropResources[0].resource)
             }
         }
 

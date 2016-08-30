@@ -353,7 +353,8 @@ var roleHarvester = {
                         let resource = (() => {
                             if(0 < _.sum(creep.carry) - creep.carry.energy){
                                 for(var it in creep.carry){
-                                    if(it !== RESOURCE_ENERGY && (labOxyFull && it === RESOURCE_OXYGEN || labKeanFull && it === RESOURCE_KEANIUM))
+                                    if([RESOURCE_ENERGY, RESOURCE_OXYGEN, RESOURCE_KEANIUM].indexOf(it)  < 0 ||
+                                        (labOxyFull && it === RESOURCE_OXYGEN || labKeanFull && it === RESOURCE_KEANIUM))
                                         return it
                                 }
                             }

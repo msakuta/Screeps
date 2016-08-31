@@ -372,7 +372,7 @@ module.exports.loop = function () {
         var ret = 0
         for(let i = 0; i < roleClaimer.flagNames.length; i++){
             let theflag = Game.flags[roleClaimer.flagNames[i]]
-            if(theflag && theflag.room.controller && (!theflag.room.controller.reservation || theflag.room.controller.reservation.ticksToEnd < 4500))
+            if(theflag && theflag.room && theflag.room.controller && (!theflag.room.controller.reservation || theflag.room.controller.reservation.ticksToEnd < 4500))
                 ret++
         }
         return ret

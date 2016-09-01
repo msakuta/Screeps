@@ -278,7 +278,6 @@ var roleHarvester = {
                                 resources.push({k: k, v: terminal.store[k]})
                             resources.sort((a,b) => a.v < b.v)
                             let r = creep.withdraw(s, resources[0].k)
-                            console.log(creep.name + ": withdrawing from a terminal: " + resources[0].k +", " + resources[0].v + " " + r)
                             if(ERR_NOT_IN_RANGE === r)
                                 creep.moveTo(s)
                         }

@@ -301,8 +301,6 @@ module.exports.loop = function () {
 
     // Level energy storage among rooms with terminals
     terminals.sort((a,b) => stats.totalEnergy(b.room)[2] < stats.totalEnergy(a.room)[2])
-    for(let i = 0; i < terminals.length; i++ )
-        console.log("terminal " + terminals[i].room + ": " + stats.totalEnergy(terminals[i].room)[2])
     if(2 <= terminals.length){
         let dest = terminals[0]
         let src = terminals[terminals.length-1]

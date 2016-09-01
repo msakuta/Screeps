@@ -378,29 +378,32 @@ module.exports.loop = function () {
     }
 
     var claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
-    // Let's stop generating claimers if maximum number of controllable rooms is reached.
-    // Technically it may have benefit because claimers can also reserve, but we'll ignore it for now.
+    // Create claimers as the same number of uncontrolled flags
     var maxClaimers = (() => {
         var ret = 0
         for(let i = 0; i < roleClaimer.flagNames.length; i++){
             let theflag = Game.flags[roleClaimer.flagNames[i]]
-            if(theflag && theflag.room && theflag.room.controller && (!theflag.room.controller.reservation || theflag.room.controller.reservation.ticksToEnd < 4500))
+            if(theflag && (!theflag.room || !theflag.room.controller ||
+                (!theflag.room.controller.reservation || theflag.room.controller.reservation.ticksToEnd < 4500)))
                 ret++
         }
         return ret
     })()
 
     // Debug output
-    //console.log('controllers: ' + controllers + ', gcl: ' + Game.gcl.level + ', maxClaimers: ' + maxClaimers)
+    //console.log('controllers: ' + controllers + ', gcl: ' + Game.gcl.level + ', maxClaimers: ' + maxClaimers + ', claimers: ' + claimers.length)
 
     if(claimers.length < maxClaimers) {
-        tryCreateCreepInt('claimer', 0, [
+        for(let s in Game.spawns){
+            if(tryCreateCreepInt('claimer', 0, [
             // Temporarily disable expensive (aggressive) claimer configuration,
             // since we won't attack controller for near future.
 //            [CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,MOVE,MOVE],
-            [CLAIM,CLAIM,MOVE,MOVE],
-            [CLAIM,MOVE],
-        ])
+                [CLAIM,CLAIM,MOVE,MOVE],
+                [CLAIM,MOVE],
+                ], Game.spawns[s]))
+            break
+        }
     }
 
     // Spawn builders

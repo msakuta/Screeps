@@ -1,5 +1,5 @@
 
-var flagNames = ['reserve', 'reserve2']
+var flagNames = ['reserve', 'reserve2', 'claim']
 
 var roleClaimer = {
 
@@ -38,7 +38,7 @@ var roleClaimer = {
             var target = creep.room.controller
             if(target && !target.my){
                 if(target.level === 0){
-                    if(Game.gcl.level === roomCount){
+                    if(Game.gcl.level === roomCount || !/claim/.test(creep.memory.flag)){
                         if(ERR_NOT_IN_RANGE === creep.reserveController(target)){
                             creep.moveTo(target)
                         }

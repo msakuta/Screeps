@@ -112,7 +112,7 @@ function tryCreateCreep(role, priority, spawn){
 
 function calcStoredEnergy(room){
     var storedEnergy = 0, storedEnergyCapacity = 0
-    let containers = room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE})
+    let containers = room.find(FIND_STRUCTURES, {filter: s => 0 <= [STRUCTURE_CONTAINER, STRUCTURE_STORAGE, STRUCTURE_TERMINAL].indexOf(s.structureType)})
     for(let j = 0; j < containers.length; j++){
         storedEnergy += containers[j].store.energy
         storedEnergyCapacity += containers[j].storeCapacity

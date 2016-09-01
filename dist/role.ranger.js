@@ -19,8 +19,14 @@ module.exports = {
             if(ERR_NOT_IN_RANGE === creep.rangedAttack(enemy)){
                 if(creep.memory.flag && Game.flags[creep.memory.flag] && Game.flags[creep.memory.flag].pos === creep.pos && creep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_RAMPART}}).length)
                     ; // Don't move if it's on a rampart (although it's not always the best strategy)
-                else
+                else if(2 < creep.pos.getRangeTo(enemy))
                     creep.moveTo(enemy)
+                else{
+                    let path = creep.room.findPath(creep.pos, enemy.pos, {flee: true});
+                    if(path.length && !enemy.pos.isEqualTo(path[path.length - 1]) ) {
+                        creep.move(path[0].direction)
+                    }
+                }
             }
         }
         else if(!creep.memory.flag){

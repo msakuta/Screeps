@@ -1,4 +1,4 @@
-var flagNames = ['ranger', 'ranger2', 'ranger3']
+var flagNames = ['ranger', 'ranger2', 'ranger3', 'ranger4']
 
 module.exports = {
 

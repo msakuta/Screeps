@@ -369,7 +369,7 @@ var roleHarvester = {
                     (0 < _.sum(creep.carry) - creep.carry.energy || creep.room.energyAvailable === creep.room.energyCapacityAvailable)){
                     // If this creep has something other than energy, always dump it
                     // into the storage, not the containers.
-                    let target = findTarget(0 < _.size(creep.carry) - creep.carry.energy ?
+                    let target = findTarget(0 < _.sum(creep.carry) - creep.carry.energy ?
                         [STRUCTURE_STORAGE, STRUCTURE_TERMINAL] :
                         [STRUCTURE_CONTAINER, STRUCTURE_STORAGE, STRUCTURE_TERMINAL],
                             s => _.sum(s.store) < s.storeCapacity && storeableTerminal(s))

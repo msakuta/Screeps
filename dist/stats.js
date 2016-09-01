@@ -17,7 +17,7 @@ function resetCache(){
 function totalEnergy(room){
     if(!totalEnergyCache[room.name]){
         var storedEnergy = 0, storedEnergyCapacity = 0
-        let containers = room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE})
+        let containers = room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE || s.structureType === STRUCTURE_TERMINAL})
         for(let j = 0; j < containers.length; j++){
             storedEnergy += containers[j].store.energy
             storedEnergyCapacity += containers[j].storeCapacity

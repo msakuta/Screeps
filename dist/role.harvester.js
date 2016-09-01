@@ -207,6 +207,12 @@ var roleHarvester = {
                     creep.memory.task = 'harvest'
             }
 
+            function storeableTerminal(s){
+                if(s.structureType !== STRUCTURE_TERMINAL)
+                    return true
+                return _.sum(s.store) < 0.5 * s.storeCapacity
+            }
+
             if(0 < freeCapacity){
                 // Always try to find and collect dropped resources
                 var target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
@@ -258,6 +264,25 @@ var roleHarvester = {
                             run: harvest
                         })
                     }
+                }
+
+                let terminal = creep.room.terminal
+                if(terminal && !storeableTerminal(terminal)){
+                    tasks.push({
+                        name: 'WithdrawTerminal',
+                        cost: creep.pos.getRangeTo(terminal) / Math.min(terminal.storeCapacity - _.sum(terminal.store), freeCapacity) * 1,
+                        target: terminal,
+                        run: s => {
+                            let resources = []
+                            for(let k in terminal.store)
+                                resources.push({k: k, v: terminal.store[k]})
+                            resources.sort((a,b) => a.v < b.v)
+                            let r = creep.withdraw(s, resources[0].k)
+                            console.log(creep.name + ": withdrawing from a terminal: " + resources[0].k +", " + resources[0].v + " " + r)
+                            if(ERR_NOT_IN_RANGE === r)
+                                creep.moveTo(s)
+                        }
+                    })
                 }
             }
 
@@ -347,7 +372,8 @@ var roleHarvester = {
                     // into the storage, not the containers.
                     let target = findTarget(0 < _.size(creep.carry) - creep.carry.energy ?
                         [STRUCTURE_STORAGE, STRUCTURE_TERMINAL] :
-                        [STRUCTURE_CONTAINER, STRUCTURE_STORAGE, STRUCTURE_TERMINAL], s => _.sum(s.store) < s.storeCapacity)
+                        [STRUCTURE_CONTAINER, STRUCTURE_STORAGE, STRUCTURE_TERMINAL],
+                            s => _.sum(s.store) < s.storeCapacity && storeableTerminal(s))
                     if(target){
                         // Dump all types of resources
                         let resource = (() => {

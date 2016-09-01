@@ -299,6 +299,20 @@ module.exports.loop = function () {
         spawn.issued = false
     }
 
+    // Level energy storage among rooms with terminals
+    terminals.sort((a,b) => stats.totalEnergy(b.room)[2] < stats.totalEnergy(a.room)[2])
+    for(let i = 0; i < terminals.length; i++ )
+        console.log("terminal " + terminals[i].room + ": " + stats.totalEnergy(terminals[i].room)[2])
+    if(2 <= terminals.length){
+        let dest = terminals[0]
+        let src = terminals[terminals.length-1]
+        let amount = Math.min(dest.storeCapacity - _.sum(dest.store), (stats.totalEnergy(src.room)[2] - stats.totalEnergy(terminals[0].room)[2]) / 2)
+        if(1000 < amount){
+            let r = terminals[terminals.length-1].send(RESOURCE_ENERGY, amount, terminals[0].room.name)
+            console.log(terminals[terminals.length-1].room + " sends energy to " + terminals[0].room + " result: " + r)
+        }
+    }
+
     roleHarvester.sortDistance()
 
     var spawnCount = 0

@@ -428,8 +428,10 @@ var roleHarvester = {
                 })
                 if(!isFinite(bestTask.cost))
                     console.log("WARNING: infinite cost detected! [" + bestTask.name + "]")
-                //let costs = _.reduce(tasks, (str, task) => str += '[' + task.name +': ' + task.cost + '],', '')
-                //console.log(creep.name + ': tasks: ' + tasks.length + ': bestTask: ' + bestTask.name + ', ' + bestTask.cost + ', ' + costs + ', ' + bestTask.target)
+                if(creep.memory.debug){
+                    let costs = _.reduce(tasks, (str, task) => str += '[' + task.name +': ' + task.cost + '],', '')
+                    console.log(creep.name + ': tasks[' + tasks.length + ']: ' + costs + ' target: ' + bestTask.target)
+                }
                 bestTask.run(bestTask.target)
             }
             else if(creep.memory.task === 'harvest' || _.sum(creep.carry) === 0) {

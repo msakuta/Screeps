@@ -8,8 +8,12 @@ function builderFilter(s){
         return false
     if(s.structureType === STRUCTURE_ROAD)
         structHits = s.hitsMax * .6
-    else if(s.structureType === STRUCTURE_WALL)
-        structHits = 50000
+    else if(s.structureType === STRUCTURE_WALL){
+        if(s.room.controller && 2 < s.room.controller.level)
+            structHits = 50000
+        else
+            structHits = 100
+    }
     else if(s instanceof StructureRampart)
         structHits = 50000
     else if(s instanceof StructureContainer)

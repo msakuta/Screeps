@@ -210,6 +210,7 @@ module.exports.loop = function () {
     }
     catch(e){
         console.log("ERROR: Exception on structures.js: ", e.stack)
+        Memory.lastException = "[" + Game.time + "] " + e.stack
     }
 
     roleHarvester.sortDistance()
@@ -454,6 +455,7 @@ module.exports.loop = function () {
             }
             catch(e){
                 console.log("ERROR: Exception on " + creep.name + ": ", e.stack)
+                Memory.lastException = "[" + Game.time + "] " + creep.name + ": " + e.stack
             }
         }
     }

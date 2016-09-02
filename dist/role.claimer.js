@@ -1,5 +1,5 @@
 
-var flagNames = ['reserve', 'reserve2', 'claim']
+var flagNames = ['reserve', 'reserve2', 'reserve3', 'claim']
 
 var roleClaimer = {
 

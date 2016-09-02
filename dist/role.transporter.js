@@ -193,7 +193,7 @@ module.exports = {
                 creep.memory.toSpawn = toSpawn.id
             }
             if(toSpawn){
-                if(creep.room === toSpawn.room){
+                if(creep.room === toSpawn.room || creep.room.terminal){
                     var resource = findInventoryResource(creep.carry)
                     let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: s => resource === RESOURCE_ENERGY ? (s.structureType === STRUCTURE_STORAGE ||

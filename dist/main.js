@@ -281,23 +281,23 @@ module.exports.loop = function () {
         }
     }
 
-    var claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
-    var maxClaimers = roleClaimer.calcMaxClaimers()
+    var claimerDemands = null
+    try{
+        claimerDemands = roleClaimer.claimerDemands()
+    }
+    catch(e){
+        console.log("ERROR: Exception on structures.js: ", e.stack)
+        Memory.lastException = "[" + Game.time + "] " + e.stack
+    }
 
-    // Debug output
-    //console.log('controllers: ' + controllers + ', gcl: ' + Game.gcl.level + ', maxClaimers: ' + maxClaimers + ', claimers: ' + claimers.length)
-
-    if(claimers.length < maxClaimers) {
-        for(let s in Game.spawns){
-            if(tryCreateCreepInt('claimer', 0, [
-            // Temporarily disable expensive (aggressive) claimer configuration,
-            // since we won't attack controller for near future.
+    if(claimerDemands) {
+        tryCreateCreepInt('claimer', 0, [
+        // Temporarily disable expensive (aggressive) claimer configuration,
+        // since we won't attack controller for near future.
 //            [CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,MOVE,MOVE],
-                [CLAIM,CLAIM,MOVE,MOVE],
-                [CLAIM,MOVE],
-                ], Game.spawns[s]))
-            break
-        }
+            [CLAIM,CLAIM,MOVE,MOVE],
+            [CLAIM,MOVE],
+            ], Game.spawns[claimerDemands])
     }
 
     // Spawn builders

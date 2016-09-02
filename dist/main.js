@@ -282,17 +282,7 @@ module.exports.loop = function () {
     }
 
     var claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
-    // Create claimers as the same number of uncontrolled flags
-    var maxClaimers = (() => {
-        var ret = 0
-        for(let i = 0; i < roleClaimer.flagNames.length; i++){
-            let theflag = Game.flags[roleClaimer.flagNames[i]]
-            if(theflag && (!theflag.room || !theflag.room.controller ||
-                (!theflag.room.controller.reservation || theflag.room.controller.reservation.ticksToEnd < 4500)))
-                ret++
-        }
-        return ret
-    })()
+    var maxClaimers = roleClaimer.calcMaxClaimers()
 
     // Debug output
     //console.log('controllers: ' + controllers + ', gcl: ' + Game.gcl.level + ', maxClaimers: ' + maxClaimers + ', claimers: ' + claimers.length)

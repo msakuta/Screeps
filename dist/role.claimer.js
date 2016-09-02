@@ -5,6 +5,28 @@ var roleClaimer = {
 
     flagNames: flagNames,
 
+    calcMaxClaimers: function(){
+        // Cache targeting claimers to flags
+        for(let name in Game.creeps){
+            let creep = Game.creeps[name]
+            if(creep.memory.role === 'claimer' && creep.memory.flag){
+                let flag = Game.flags[creep.memory.flag]
+                if(flag)
+                    flag.claimer = creep
+            }
+        }
+
+        // Create claimers as the same number of uncontrolled flags
+        var ret = 0
+        for(let i = 0; i < flagNames.length; i++){
+            let theflag = Game.flags[flagNames[i]]
+            if(theflag && (theflag.claimer || !theflag.room || !theflag.room.controller ||
+                (!theflag.room.controller.reservation || theflag.room.controller.reservation.ticksToEnd < 4500)))
+                ret++
+        }
+        return ret
+    },
+
     /** @param {Creep} creep **/
     run: function(creep) {
 
@@ -12,7 +34,7 @@ var roleClaimer = {
             for(let i = 0; i < flagNames.length; i++){
                 let flag = Game.flags[flagNames[i]]
 
-                if(!flag)
+                if(!flag || flag.room && flag.room.controller && flag.room.controller.reservation && flag.room.controller.reservation.ticksToEnd < 4500)
                     continue
 
                 if((function(){

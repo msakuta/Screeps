@@ -305,9 +305,10 @@ module.exports.loop = function () {
         let dest = terminals[0]
         let src = terminals[terminals.length-1]
         let amount = Math.min(dest.storeCapacity - _.sum(dest.store), (stats.totalEnergy(src.room)[2] - stats.totalEnergy(terminals[0].room)[2]) / 2)
-        if(1000 < amount){
+        if(10000 < amount){
             let r = terminals[terminals.length-1].send(RESOURCE_ENERGY, amount, terminals[0].room.name)
-            console.log(terminals[terminals.length-1].room + " sends energy to " + terminals[0].room + " result: " + r)
+            console.log(terminals[terminals.length-1].room + " sends energy to " + terminals[0].room +
+                " for " + amount + " energy, with cost " + Game.market.calcTransactionCost(amount, src.room.name, dest.room.name) + " result: " + r)
         }
     }
 

@@ -207,10 +207,10 @@ var roleHarvester = {
                     creep.memory.task = 'harvest'
             }
 
-            function storeableTerminal(s){
+            function storeableTerminal(s, withdraw = false){
                 if(s.structureType !== STRUCTURE_TERMINAL)
                     return true
-                return _.sum(s.store) < 0.5 * s.storeCapacity
+                return _.sum(s.store) < (withdraw ? 0.6 : 0.4) * s.storeCapacity
             }
 
             if(0 < freeCapacity){
@@ -267,7 +267,7 @@ var roleHarvester = {
                 }
 
                 let terminal = creep.room.terminal
-                if(terminal && !storeableTerminal(terminal)){
+                if(terminal && !storeableTerminal(terminal, true)){
                     tasks.push({
                         name: 'WithdrawTerminal',
                         cost: creep.pos.getRangeTo(terminal) / Math.min(terminal.storeCapacity - _.sum(terminal.store), freeCapacity) * 1,

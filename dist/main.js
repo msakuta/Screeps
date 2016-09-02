@@ -80,7 +80,9 @@ function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
     if(i === maxCandidate){
         return false;
     }
-    var newName = spawn.createCreep(body, undefined, {role: role});
+
+    for(var namePostfix = 0; (role + namePostfix) in Game.creeps; namePostfix++);
+    var newName = spawn.createCreep(body, role + namePostfix, {role: role});
     if(typeof newName === 'number' && newName < 0)
         return false
     // Signal other roles not to issue another createCreep command, because it would

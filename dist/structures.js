@@ -104,6 +104,16 @@ module.exports = function(){
         let dest = terminals[0]
         let src = terminals[terminals.length-1]
         let amount = Math.min(dest.storeCapacity - _.sum(dest.store), (stats.totalEnergy(src.room)[2] - stats.totalEnergy(terminals[0].room)[2]) / 2)
+        // Calculate transaction cost and check if there is sufficient energy in the terminal
+        let cost = Game.market.calcTransactionCost(amount, src.room.name, dest.room.name)
+        // If sending would cause deficit of energy, adjust the amount so that we won't have a problem.
+        // Technically, cost also depends on amount, so we need to solve the equation
+        //   amount + cost(amount) === storedEnergy
+        // in order to get optimal result, but we won't bother because it's nonlinear (steppy function)
+        // and assuming d(cost(amount))/d(amount) == 0 is practical assumption.
+        // And cost will always be lower than before.
+        if(src.store.energy < amount + cost)
+            amount = src.store.energy - cost
         if(10000 < amount){
             let r = terminals[terminals.length-1].send(RESOURCE_ENERGY, amount, terminals[0].room.name)
             console.log(terminals[terminals.length-1].room + " sends energy to " + terminals[0].room +

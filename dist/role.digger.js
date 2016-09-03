@@ -1,4 +1,16 @@
-var flagNames = ['dig', 'dig2', 'dig3', 'dig4', 'dig5', 'dig6']
+
+function flagName(i){
+    if(i === 0)
+        return 'dig'
+    else
+        return 'dig' + (i + 1)
+}
+
+function enumFlagName(callback){
+    var i = 0
+    while(flagName(i) in Game.flags)
+        callback(flagName(i++))
+}
 
 // Might be better to do prototyping
 function getEnergy(struct){
@@ -17,7 +29,9 @@ function getSpace(struct){
 var roleDigger = {
 
     diggerCount: function(){
-        return _.filter(flagNames, f => f in Game.flags).length
+        var ret = 0
+        enumFlagName(() => ret++)
+        return ret
     },
 
     /** @param {Creep} creep **/
@@ -82,11 +96,11 @@ var roleDigger = {
 
         if(creep.memory.task === 'harvest' || true){
             if(!creep.memory.flag){
-                for(let i = 0; i < flagNames.length; i++){
-                    let flag = Game.flags[flagNames[i]]
+                enumFlagName((flagName) => {
+                    let flag = Game.flags[flagName]
 
                     if(!flag)
-                        continue
+                        return
 
                     if((function(){
                         for(let name in Game.creeps){
@@ -96,14 +110,14 @@ var roleDigger = {
                         }
                         return false
                     })())
-                        continue
+                        return
 
                     if(creep.memory.task !== 'harvest'){
                         creep.memory.task = 'harvest'
                     }
 
                     creep.memory.flag = flag.name
-                }
+                })
             }
 
             if(creep.memory.flag){

@@ -418,6 +418,41 @@ var roleHarvester = {
                 }
             }
 
+            if(creep.room.controller && creep.room.controller.my &&
+                creep.room.energyAvailable === creep.room.energyCapacityAvailable){
+
+                // Level energy between terminal and storage
+                target = creep.room.terminal
+                let src = creep.room.storage
+                if(target && storeableTerminal(target) && src && target.store.energy < src.store.energy){
+
+                    if(50 < freeCapacity){
+                        tasks.push({
+                            name: 'WithdrawStorageForTerminal',
+                            cost: src.pos.getRangeTo(creep) / Math.min(freeCapacity, src.store.energy),
+                            target: src,
+                            run: (target) => {
+                                if(creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(target);
+                                }
+                            }
+                        })
+                    }
+                    else{
+                        tasks.push({
+                            name: 'FillTerminal',
+                            cost: target.pos.getRangeTo(creep) / Math.min(creep.carry.energy, target.storeCapacity - _.sum(target.store)),
+                            target: target,
+                            run: (target) => {
+                                if(creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(target);
+                                }
+                            }
+                        })
+                    }
+                }
+            }
+
             //if(!tasks.length)
             //    console.log(creep.name + ': tasks: ' + tasks.length)
             if(tasks.length){

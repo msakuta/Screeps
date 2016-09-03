@@ -240,7 +240,8 @@ module.exports.loop = function () {
 
         let energy = stats.totalEnergy(spawn.room)
         spawn.room.energy = energy // cache stats for later use
-        //console.log('harvesterCost: ' + harvesterCost + ', energy: ' + energy[0] + '/' + energy[2])
+        if(spawn.memory.debug)
+            console.log('[' + key + '] harvesterCost: ' + harvesterCost + ', energy: ' + energy[0] + '/' + energy[2])
 
         let sourceCount = spawn.room.find(FIND_SOURCES).length;
 

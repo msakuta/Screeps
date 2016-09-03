@@ -602,9 +602,7 @@ var roleHarvester = {
                             return false
                         var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
                         return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy})) &&
-                    !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity) &&
-                    (!creep.room.controller || !creep.room.controller.my ||
-                        !tryFindTarget([STRUCTURE_CONTAINER, STRUCTURE_STORAGE], s => _.sum(s.store) < s.storeCapacity)))
+                    !tryFindTarget([STRUCTURE_EXTENSION, STRUCTURE_SPAWN], s => s.energy < s.energyCapacity))
                 {
                     // If there is a room with a Spawn but few upgraders, change the role to upgrader to support the room's control.
                     let noupgraderRooms = _.filter(Game.rooms, r => r.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_SPAWN}}).length &&

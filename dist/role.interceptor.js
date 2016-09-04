@@ -39,13 +39,22 @@ module.exports = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        var enemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: enemyFilter})
+        var enemy
+        if(creep.memory.enemy){
+            enemy = Game.getObjectById(creep.memory.enemy)
+            // Forget about dead enemy
+            if(!enemy)
+                creep.memory.enemy = undefined 
+        }
+        if(!enemy)
+            enemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: enemyFilter})
         if(enemy){
             creep.say('enemy!')
             if(ERR_NOT_IN_RANGE === creep.rangedAttack(enemy) || ERR_NOT_IN_RANGE === creep.attack(enemy)){
                 // Always move towards enemy for melee attack
                 creep.moveTo(enemy)
             }
+            creep.memory.enemy = enemy.id
         }
         else{
             // moveTo and heal can be executed simultaneously.

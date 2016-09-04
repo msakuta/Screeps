@@ -392,12 +392,14 @@ module.exports.loop = function () {
     // Create transporters
     let transporters = _.filter(Game.creeps, creep => creep.memory.role === 'transporter').length
     let maxSpawnLevel = _.reduce(Game.spawns, (best,next) => best < next.room.controller.level ? next.room.controller.level : best).room.controller.level
+    let maxTransporters = roleTransporter.transporterCount()
     for(let spawnName in Game.spawns){
         let spawn = Game.spawns[spawnName]
         // Limit the creator of transporters to spawns with highest room control levels
         // to prevent them from creating transporters with tiny body parts which causes
         // inefficiency.
-        if(transporters < 4 && maxSpawnLevel - 1 <= spawn.room.controller.level){
+        // Desired number of transporters is the same as diggers because they work in pairs.
+        if(transporters < maxTransporters && maxSpawnLevel - 1 <= spawn.room.controller.level){
             // Create body candidates with as much capacity as possible
             let transporterBodyCandidates = []
             for(let i = 10; 0 <= i; i--){

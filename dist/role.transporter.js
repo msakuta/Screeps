@@ -25,6 +25,18 @@ function findInventoryResource(store){
 
 module.exports = {
 
+    transporterCount: function(){
+        var ret = 0
+        roleDigger.enumFlagName((flag) => {
+            // Flags in room with controlled controller do not count.
+            // Invisible room counts.
+            flag = Game.flags[flag]
+            if(flag && (!flag.room || !flag.room.controller || !flag.room.controller.owner))
+                ret++
+        })
+        return ret
+    },
+
     /** @param {Creep} creep **/
     run: function(creep) {
 

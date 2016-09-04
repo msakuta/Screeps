@@ -376,7 +376,7 @@ module.exports.loop = function () {
     for(let key in Game.spawns){
         var spawn = Game.spawns[key]
         var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role === 'upgrader' && creep.room === spawn.room);
-        var maxUpgraders = [0,1,3,5,5,5,5,5,5][spawn.room.controller.level];
+        var maxUpgraders = [0,1,3,4,4,5,5,5,5][spawn.room.controller.level];
         if(Memory.stats && 0 < Memory.stats.restingCreeps)
             maxUpgraders += Memory.stats.restingCreeps;
         let stored = stats.totalEnergy(spawn.room)

@@ -166,7 +166,7 @@ var roleHarvester = {
                 // Withdraw from container or storage only if there is a vacant
                 // extension, but always try to withdraw from sink link.
                 let source = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: s => containerWithdraw && (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && 0 < s.store.energy ||
+                    filter: s => containerWithdraw && 0 <= [STRUCTURE_CONTAINER, STRUCTURE_STORAGE, STRUCTURE_TERMINAL].indexOf(s.structureType) && 0 < s.store.energy ||
                         s.structureType === STRUCTURE_LINK && s.sink && 0 < s.energy && creep.pos.getRangeTo(s) < 10
                 });
                 if(source){
@@ -183,6 +183,8 @@ var roleHarvester = {
                             thirsty = false
                         }
                     })
+                    if(creep.memory.debug)
+                        console.log(creep.name + ' ' + containerWithdraw + ' ' + tasks[tasks.length-1].target)
                 }
 
                 // If this creep carries minerals (resources other than energy),

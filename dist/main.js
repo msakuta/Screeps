@@ -234,6 +234,7 @@ module.exports.loop = function () {
                 harvesterCount++
             }
             if(Game.creeps[i].memory.role === 'digger' && Game.creeps[i].room === spawn.room){
+                harvesterCost += countBodyCost(Game.creeps[i])
                 diggerCount++
             }
         }
@@ -245,7 +246,7 @@ module.exports.loop = function () {
 
         let sourceCount = spawn.room.find(FIND_SOURCES).length;
 
-        if((harvesterCount === 0 || harvesterCount + diggerCount < sourceCount + 1) && harvesterCost < 1000 && totalHarvesterCount < spawnCount * (sourceCount + 1)) {
+        if((harvesterCount === 0 || harvesterCount + diggerCount < sourceCount + 1) && harvesterCost < 2000 && totalHarvesterCount < spawnCount * (sourceCount + 1)) {
             // If there is no harvester in a room, bring harvester creation to the front
             // of the queue because he would fill the spawn and extensions for others
             let harvesterIdx

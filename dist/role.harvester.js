@@ -455,6 +455,23 @@ var roleHarvester = {
                 }
             }
 
+            // Fill tower with energy
+            var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                filter: s => s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity
+            })
+            if(target && 10 <= creep.carry.energy){
+                tasks.push({
+                    name: 'FillTower',
+                    cost: target.pos.getRangeTo(creep) / Math.min(creep.carry.energy, target.energyCapacity - target.energy),
+                    target: target,
+                    run: s => {
+                        if(creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                            creep.moveTo(target)
+                        }
+                    }
+                })
+            }
+
             //if(!tasks.length)
             //    console.log(creep.name + ': tasks: ' + tasks.length)
             if(tasks.length){
@@ -623,18 +640,7 @@ var roleHarvester = {
             else if(0 < creep.carry.energy){
 
                 // Precede filling tower, then extension and spawn, lastly container and storage.
-                if(!tryFindTarget([STRUCTURE_TOWER], s => {
-                        // Tower tend to spend tiny amount of energy from time to time for repairing
-                        // roads and containers, so don't spend time for filling tiny amount of energy.
-                        // Specifically, if this creep can harvest more than the energy amount it could
-                        // transfer to the tower in the same duration of moving to the tower, it's not
-                        // worth transferring (spending time for harvesting is more beneficial).
-                        // That said, if the tower is getting short in energy, we can't help but restoring it.
-                        if(s.energy < s.energyCapacity * 0.7)
-                            return true
-                        var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)
-                        return totalPotentialHarvests(creep, creep.pos.getRangeTo(s)) < fillableEnergy}) &&
-                    (creep.room.energyAvailable < creep.room.energyCapacityAvailable || !tryFindTarget([STRUCTURE_LINK], s => {
+                if((creep.room.energyAvailable < creep.room.energyCapacityAvailable || !tryFindTarget([STRUCTURE_LINK], s => {
                         if(!s.source || !(s.energy < s.energyCapacity) || 3 < creep.pos.getRangeTo(s))
                             return false
                         var fillableEnergy = Math.min(creep.carry.energy, s.energyCapacity - s.energy)

@@ -1,4 +1,6 @@
 var flagNames = ['dig', 'dig2', 'dig3', 'dig4', 'dig5', 'dig6']
+var stats = require('stats')
+
 
 /// We don't want to waste time for picking up tiny amount of energy by diverting from
 /// the main course, but if it's very close to the creep, it's worth bothering.
@@ -188,7 +190,7 @@ module.exports = {
                     var bestStorage = best.room.storage
                     if(!bestStorage)
                         return spawn
-                    return spawn.room.storage.store.energy < best.room.storage.store.energy ? spawn : best
+                    return stats.totalEnergy(spawn.room)[2] < stats.totalEnergy(best.room)[2] ? spawn : best
                 })
                 creep.memory.toSpawn = toSpawn.id
             }

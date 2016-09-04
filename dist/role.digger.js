@@ -28,6 +28,9 @@ function getSpace(struct){
 
 var roleDigger = {
 
+    flagName: flagName,
+    enumFlagName: enumFlagName,
+
     diggerCount: function(){
         var ret = 0
         enumFlagName(() => ret++)

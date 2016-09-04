@@ -1,6 +1,5 @@
-var flagNames = ['dig', 'dig2', 'dig3', 'dig4', 'dig5', 'dig6']
 var stats = require('stats')
-
+var roleDigger = require('role.digger')
 
 /// We don't want to waste time for picking up tiny amount of energy by diverting from
 /// the main course, but if it's very close to the creep, it's worth bothering.
@@ -50,11 +49,11 @@ module.exports = {
 
             // Find and memorize flag
             if(!creep.memory.flag){
-                for(let i = 0; i < flagNames.length; i++){
-                    let flag = Game.flags[flagNames[i]]
+                roleDigger.enumFlagName(flagName => {
+                    let flag = Game.flags[flagName]
 
                     if(!flag || !flag.room || 0 < flag.room.find(FIND_MY_STRUCTURES, {filter: s => s.structureType === STRUCTURE_SPAWN}).length)
-                        continue
+                        return
 
                     if((function(){
                         for(let name in Game.creeps){
@@ -64,10 +63,10 @@ module.exports = {
                         }
                         return false
                     })())
-                        continue
+                        return
 
                     creep.memory.flag = flag.name
-                }
+                })
             }
 
             var fromSpawn = null

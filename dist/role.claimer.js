@@ -1,5 +1,5 @@
 
-var flagNames = ['reserve', 'reserve2', 'reserve3', 'claim']
+var flagNames = ['reserve', 'reserve2', 'reserve3', 'reserve4', 'claim']
 
 var roleClaimer = {
 
@@ -17,6 +17,7 @@ var roleClaimer = {
             }
         }
 
+        let ret = []
         // Create claimers as the same number of uncontrolled flags
         for(let i = 0; i < flagNames.length; i++){
             let theflag = Game.flags[flagNames[i]]
@@ -44,9 +45,9 @@ var roleClaimer = {
 
             if(theflag.memory.nearestSpawn && !theflag.claimer && (!theflag.room || !theflag.room.controller ||
                 !theflag.room.controller.reservation || theflag.room.controller.reservation.ticksToEnd < 4500))
-                return theflag.memory.nearestSpawn
+                ret.push(theflag.memory.nearestSpawn)
         }
-        return null
+        return ret
     },
 
     /** @param {Creep} creep **/

@@ -291,14 +291,14 @@ module.exports.loop = function () {
         Memory.lastException = "[" + Game.time + "] " + e.stack
     }
 
-    if(claimerDemands) {
+    for(let i = 0; i < claimerDemands.length; i++){
         tryCreateCreepInt('claimer', 0, [
         // Temporarily disable expensive (aggressive) claimer configuration,
         // since we won't attack controller for near future.
 //            [CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,MOVE,MOVE],
             [CLAIM,CLAIM,MOVE,MOVE],
             [CLAIM,MOVE],
-            ], Game.spawns[claimerDemands])
+            ], Game.spawns[claimerDemands[i]])
     }
 
     // Spawn builders

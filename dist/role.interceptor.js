@@ -14,6 +14,13 @@ function findEnemy(){
     return null
 }
 
+function countEnemy(){
+    var room = findEnemy()
+    if(!room)
+        return 0
+    return room.find(FIND_HOSTILE_CREEPS, {filter: enemyFilter}).length
+}
+
 
 module.exports = {
 
@@ -27,6 +34,8 @@ module.exports = {
     },
 
     findEnemy: findEnemy,
+
+    countEnemy: countEnemy,
 
     /** @param {Creep} creep **/
     run: function(creep) {

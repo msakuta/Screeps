@@ -355,7 +355,7 @@ module.exports.loop = function () {
     }
 
     var interceptors = _.filter(Game.creeps, (creep) => creep.memory.role == 'interceptor');
-    var maxInterceptors = !!roleInterceptor.findEnemy();
+    var maxInterceptors = roleInterceptor.countEnemy();
 
     // Spawn interceptors
     if(interceptors.length < maxInterceptors) {

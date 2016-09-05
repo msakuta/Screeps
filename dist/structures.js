@@ -106,14 +106,30 @@ module.exports = function(){
         let amount = Math.min(dest.storeCapacity - _.sum(dest.store), (stats.totalEnergy(src.room)[2] - stats.totalEnergy(terminals[0].room)[2]) / 2)
         // Calculate transaction cost and check if there is sufficient energy in the terminal
         let cost = Game.market.calcTransactionCost(amount, src.room.name, dest.room.name)
+
+        // Write debug string to memory instead of console to avoid cluttering
+        if(src.room.memory.debug)
+            src.room.memory.sendDemand = dest.room.name + ' for ' + amount + ' with cost ' + cost + ' at source ' + src.store.energy
+
         // If sending would cause deficit of energy, adjust the amount so that we won't have a problem.
-        // Technically, cost also depends on amount, so we need to solve the equation
+        // Cost also depends on amount, so we need to solve the equation
         //   amount + cost(amount) === storedEnergy
-        // in order to get optimal result, but we won't bother because it's nonlinear (steppy function)
-        // and assuming d(cost(amount))/d(amount) == 0 is practical assumption.
-        // And cost will always be lower than before.
-        if(src.store.energy < amount + cost)
-            amount = src.store.energy - cost
+        // where cost is a function of the form
+        //   cost(amount) = Math.ceil(amount * (Math.log((distance + 9) * 0.1) + 0.1)).
+        // (This formula is obtained from Game.market.calcTransactionCost definition and might change in future.)
+        // But obtaining the solution of the equation analytically is not straightforward because
+        // it's nonlinear (steppy function).
+        // So we scan amount in a fixed interval to find the (approximate) solution.
+        // Binary search could be better. Newtonian method could be worse since
+        // derivative is not continuous (thanks to Math.ceil).
+        while(src.store.energy < amount + cost && 10000 < amount){
+            amount -= 1000
+            cost = Game.market.calcTransactionCost(amount, src.room.name, dest.room.name)
+        }
+
+        if(src.room.memory.debug)
+            src.room.memory.sendDemand += '  after cost adjust: ' + amount + ' cost ' + cost
+
         if(10000 < amount){
             let r = terminals[terminals.length-1].send(RESOURCE_ENERGY, amount, terminals[0].room.name)
             console.log(terminals[terminals.length-1].room + " sends energy to " + terminals[0].room +

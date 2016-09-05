@@ -456,20 +456,22 @@ var roleHarvester = {
             }
 
             // Fill tower with energy
-            var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: s => s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity
-            })
-            if(target && 10 <= creep.carry.energy){
-                tasks.push({
-                    name: 'FillTower',
-                    cost: target.pos.getRangeTo(creep) / Math.min(creep.carry.energy, target.energyCapacity - target.energy),
-                    target: target,
-                    run: s => {
-                        if(creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                            creep.moveTo(target)
-                        }
-                    }
+            if(creep.memory.task !== 'harvest' && 10 <= creep.carry.energy){
+                var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: s => s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity
                 })
+                if(target){
+                    tasks.push({
+                        name: 'FillTower',
+                        cost: target.pos.getRangeTo(creep) / Math.min(creep.carry.energy, target.energyCapacity - target.energy),
+                        target: target,
+                        run: s => {
+                            if(creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                                creep.moveTo(target)
+                            }
+                        }
+                    })
+                }
             }
 
             //if(!tasks.length)

@@ -364,10 +364,14 @@ var roleHarvester = {
                 }
             }
 
+            let terminal = creep.room.terminal
+            let storage = creep.room.storage
+            let fillTerminal = terminal && storeableTerminal(terminal) && storage && terminal.store.energy < storage.store.energy * 0.8
+
             // Dump to containers only if the room is controlled by me.
             if(creep.memory.task !== 'harvest' && 0 < _.sum(creep.carry)){
 
-                if(creep.room.controller && creep.room.controller.my &&
+                if(!fillTerminal && creep.room.controller && creep.room.controller.my &&
                     (0 < _.sum(creep.carry) - creep.carry.energy || creep.room.energyAvailable === creep.room.energyCapacityAvailable)){
                     // If this creep has something other than energy, always dump it
                     // into the storage, not the containers.
@@ -426,7 +430,7 @@ var roleHarvester = {
                 // Level energy between terminal and storage
                 target = creep.room.terminal
                 let src = creep.room.storage
-                if(target && storeableTerminal(target) && src && target.store.energy < src.store.energy){
+                if(fillTerminal){
 
                     if(50 < freeCapacity){
                         tasks.push({

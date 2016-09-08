@@ -40,6 +40,8 @@ function tryCreateCreepInt(role, priority, bodyCandidates, spawn){
     if(spawn.memory.queue === undefined)
         spawn.memory.queue = []
 
+    if(!spawn.demamds)
+        spawn.demands = {}
     spawn.demands[role] = true
 
     // This is the spawning queue, managed for each spawn.
@@ -426,7 +428,7 @@ module.exports.loop = function () {
             continue
         //console.log(spawn + ' queue: ' + spawn.memory.queue.length + ' demands: ' + _.sum(spawn.demands))
         for(let i = 0; i < spawn.memory.queue.length;){
-            if(!(spawn.memory.queue[i] in spawn.demands))
+            if(!spawn.demands || !(spawn.memory.queue[i] in spawn.demands))
                 spawn.memory.queue.splice(i, 1)
             else {
                 i++

@@ -19,7 +19,7 @@ var roleUpgrader = {
         if(creep.memory.task === 'upgrade') {
             if(creep.room.controller && creep.room.controller.my){
                 if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.room.controller);
+                    creep.moveTo(creep.room.controller, {reusePath: 8});
                 }
             }
             else if(creep.memory.spawn){
@@ -69,7 +69,7 @@ var roleUpgrader = {
                 if(!source || source.energy === 0)
                     creep.memory.target = undefined
                 else if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(source);
+                    creep.moveTo(source, {reusePath: 8});
                 }
             }
             else{
@@ -93,7 +93,7 @@ var roleUpgrader = {
                     var source = creep.pos.findClosestByRange(FIND_SOURCES, {filter: roleHarvester.sourcePredicate});
                     if(source){
                         if(creep.harvest(source) === ERR_NOT_IN_RANGE) {
-                            creep.moveTo(source);
+                            creep.moveTo(source, {reusePath: 8});
                         }
                         creep.memory.target = source.id
     /*                    if(!srouce.harvesters)

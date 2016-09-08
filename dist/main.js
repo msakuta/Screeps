@@ -448,12 +448,18 @@ module.exports.loop = function () {
         upgrader: roleUpgrader.run,
     }
 
+    var roleCpus = {}
+
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
         var run = roles[creep.memory.role]
         if(run){
             try{
+                let before = Game.cpu.getUsed()
                 run(creep)
+                let cpustat = roleCpus[creep.memory.role] || (roleCpus[creep.memory.role] = {cpu: 0, count: 0})
+                cpustat.cpu += Game.cpu.getUsed() - before
+                cpustat.count++
             }
             catch(e){
                 console.log("ERROR: Exception on " + creep.name + ": ", e.stack)
@@ -461,6 +467,11 @@ module.exports.loop = function () {
             }
         }
     }
+
+    for(var role in roleCpus){
+        console.log('CPU: ' + role + ': ' + roleCpus[role].count + ', ' + roleCpus[role].cpu + ', avg: ' + roleCpus[role].cpu / roleCpus[role].count)
+    }
+    console.log('CPU: total: ' + _.reduce(roleCpus, (s,c)=>s+c.cpu, 0))
 
     for(let r in Game.rooms){
         let room = Game.rooms[r]

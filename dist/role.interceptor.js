@@ -44,7 +44,7 @@ module.exports = {
             enemy = Game.getObjectById(creep.memory.enemy)
             // Forget about dead enemy
             if(!enemy)
-                creep.memory.enemy = undefined 
+                creep.memory.enemy = undefined
         }
         if(!enemy)
             enemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: enemyFilter})
@@ -73,6 +73,15 @@ module.exports = {
             var enemyRoom = findEnemy()
             if(enemyRoom){
                 creep.moveTo(new RoomPosition(25, 25, enemyRoom.name))
+                // Memorize last seen position of enemy to keep going to the room even if
+                // all creeps are killed there.
+                creep.memory.lastSeen = enemyRoom.name
+            }
+            else if(creep.memory.lastSeen){
+                if(!(creep.memory.lastSeen in Game.rooms))
+                    creep.moveTo(new RoomPosition(25,25,creep.memory.lastSeen))
+                else
+                    creep.memory.lastSeen = undefined
             }
             else if(!creep.memory.flag){
                 var flagWatchers = []

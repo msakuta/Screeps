@@ -75,6 +75,15 @@ module.exports = function(){
             }
             else if(0 < _.sum(room.terminal.store) - room.terminal.store.energy)
                 srcTerminal = room.terminal
+
+            let res = RESOURCE_OXYGEN
+            let hydrogen = room.terminal.store[res]
+            if(room.storage && room.storage.store[res])
+                hydrogen += room.storage.store[res]
+            if(100000 < hydrogen){
+                //let orders = Game.market.getAllOrders(o => o.roomName && Game.map.getRoomLinearDistance(o.roomName, room.name) < 5)
+                //console.log('[' + room.name + '] valid orders: ' + orders.length + ' ' + _.reduce(orders, (s,o) => s += o.roomName + ' ' + o.resourceType + ', ', ''))
+            }
         }
     }
 

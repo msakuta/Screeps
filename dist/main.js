@@ -321,21 +321,25 @@ module.exports.loop = function () {
 
     // Spawn builders
     var totalBuilderCount = _.filter(Game.creeps, c => c.memory.role === 'builder').length
-    for(let key in Game.spawns){
-        let spawn = Game.spawns[key]
-        let builderCost = 0
-        let builderCount = 0
-        for(let i in Game.creeps){
-            if(Game.creeps[i].memory.role === 'builder' && Game.creeps[i].room === spawn.room){
-                builderCost += countBodyCost(Game.creeps[i])
-                builderCount++
+    var spawnableRooms = _.filter(Game.rooms, r => r.controller && r.controller.my &&
+        0 < r.find(FIND_MY_STRUCTURES, {filter: s => s.structureType === STRUCTURE_SPAWN}).length).length
+    if(totalBuilderCount < spawnableRooms * 2){
+        for(let key in Game.spawns){
+            let spawn = Game.spawns[key]
+            let builderCost = 0
+            let builderCount = 0
+            for(let i in Game.creeps){
+                if(Game.creeps[i].memory.role === 'builder' && Game.creeps[i].room === spawn.room){
+                    builderCost += countBodyCost(Game.creeps[i])
+                    builderCount++
+                }
             }
-        }
 
-        // You don't really need more than 2 builders
-        let creepsPerSpawn = (1 + (3 < spawn.room.controller.level))
-        if(builderCount < creepsPerSpawn && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2] && totalBuilderCount < spawnCount * creepsPerSpawn) {
-            tryCreateCreep('builder', spawn.room.controller.level - 1, spawn)
+            // You don't really need more than 2 builders
+            let creepsPerSpawn = (1 + (3 < spawn.room.controller.level))
+            if(builderCount < creepsPerSpawn && builderCost * 2 < spawn.room.energy[0] + spawn.room.energy[2] && totalBuilderCount < spawnCount * creepsPerSpawn) {
+                tryCreateCreep('builder', spawn.room.controller.level - 1, spawn)
+            }
         }
     }
 

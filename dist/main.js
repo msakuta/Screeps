@@ -125,13 +125,19 @@ function calcStoredEnergy(room){
     return [storedEnergy, storedEnergyCapacity]
 }
 
-function logStats(){
+function logStats(roleCpus){
     // Only record once in 100 ticks
     if(Game.time % 100 !== 0){
         // Strictly, we don't need to keep the value for every tick until accumulation.
         // We could just record total value and sum of those values and divide
         // at the end.
         appendHistory('tempcpu', Game.cpu.getUsed())
+
+        // Accumulate usage of cpu for each role
+        Memory.tempRoleCpu = Memory.tempRoleCpu || {}
+        for(let i in roleCpus)
+            Memory.tempRoleCpu[i] = (Memory.tempRoleCpu[i] || 0) + roleCpus[i].cpu / roleCpus[i].count
+        Memory.tempCount = (Memory.tempCount || 0) + 1
         return
     }
     var energy = 0, energyCapacity = 0
@@ -152,12 +158,12 @@ function logStats(){
     }
 
     var historyLength = 1000
-    function appendHistory(key, value){
-        if(Memory[key] === undefined)
-            Memory[key] = []
-        Memory[key].push(value)
-        while(historyLength < Memory[key].length)
-            Memory[key].splice(0,1)
+    function appendHistory(key, value, obj = Memory){
+        if(obj[key] === undefined)
+            obj[key] = []
+        obj[key].push(value)
+        while(historyLength < obj[key].length)
+            obj[key].splice(0,1)
     }
 
     appendHistory('timeHistory', Game.time)
@@ -180,6 +186,15 @@ function logStats(){
         else
             return Game.cpu.getUsed()
         })())
+
+    // Record average of the cpu usage for each role by dividing sum by accumulated tick count.
+    Memory.roleCpuHistory = Memory.roleCpuHistory || {}
+    for(let i in roleCpus){
+        let v = (Memory.tempRoleCpu && Memory.tempRoleCpu[i] || 0) + roleCpus[i].cpu / roleCpus[i].count
+        appendHistory(i, v / ((Memory.tempCount || 0) + 1), Memory.roleCpuHistory)
+    }
+    Memory.tempCount = 0
+    Memory.tempRoleCpu = undefined
 }
 
 
@@ -468,10 +483,12 @@ module.exports.loop = function () {
         }
     }
 
-    for(var role in roleCpus){
-        console.log('CPU: ' + role + ': ' + roleCpus[role].count + ', ' + roleCpus[role].cpu + ', avg: ' + roleCpus[role].cpu / roleCpus[role].count)
+    if(Memory.verboseRoleCpu){
+        for(var role in roleCpus){
+            console.log('CPU: ' + role + ': ' + roleCpus[role].count + ', ' + roleCpus[role].cpu + ', avg: ' + roleCpus[role].cpu / roleCpus[role].count)
+        }
+        console.log('CPU: total: ' + _.reduce(roleCpus, (s,c)=>s+c.cpu, 0))
     }
-    console.log('CPU: total: ' + _.reduce(roleCpus, (s,c)=>s+c.cpu, 0))
 
     for(let r in Game.rooms){
         let room = Game.rooms[r]
@@ -483,7 +500,7 @@ module.exports.loop = function () {
         }
     }
 
-    logStats()
+    logStats(roleCpus)
 
     Memory.lastTick = Game.time
 }

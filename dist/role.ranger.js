@@ -55,12 +55,30 @@ module.exports = {
                 creep.memory.flag = flag.name
         }
         else{
-            var flag = Game.flags[creep.memory.flag]
-            if(flag && !flag.pos.isEqualTo(creep.pos))
-                creep.moveTo(flag)
-            else if(!creep.memory.ready){
-                creep.say('ready')
-                creep.memory.ready = true
+            function tryBoostKO(){
+                let unboosted = false
+                _.forEach(creep.body, b => {if(b.type === RANGED_ATTACK && !b.boost) unboosted = true});
+                if(!unboosted)
+                    return false
+                let labKO = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+                    filter: s => s.structureType === STRUCTURE_LAB && s.mineralType === RESOURCE_KEANIUM_OXIDE && 0 < s.mineralAmount && 0 < s.energy
+                })
+                if(labKO){
+                    if(ERR_NOT_IN_RANGE === labKO.boostCreep(creep))
+                        creep.moveTo(labKO)
+                    return true
+                }
+                return false
+            }
+
+            if(!tryBoostKO()){
+                var flag = Game.flags[creep.memory.flag]
+                if(flag && !flag.pos.isEqualTo(creep.pos))
+                    creep.moveTo(flag)
+                else if(!creep.memory.ready){
+                    creep.say('ready')
+                    creep.memory.ready = true
+                }
             }
         }
 	}

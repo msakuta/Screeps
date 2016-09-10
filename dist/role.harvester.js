@@ -149,6 +149,9 @@ var roleHarvester = {
                 return target
             }
 
+            if(creep.memory.task === 'harvest' && _.sum(creep.carry) === creep.carryCapacity)
+                creep.memory.task = undefined
+
             var spawn
             for(let k in Game.spawns)
                 if(Game.spawns[k].room === creep.room)
@@ -666,7 +669,7 @@ var roleHarvester = {
                         else
                             creep.moveTo(noupgraderRoom)
                     }
-                    else{
+                    else if(!creep.room.controller || !creep.room.controller.my){
                     // If there's nothing to do, find a room with least working force
                     // and visit it as a helping hand.
                     // Technically, the least working force does not necessarily meaning

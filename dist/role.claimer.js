@@ -1,9 +1,26 @@
 
-var flagNames = ['reserve', 'reserve2', 'reserve3', 'reserve4', 'claim']
+// 'claim', 'reserve', 'reserve2', ...
+function flagName(i){
+    return i === 0 ? 'claim' : i === 1 ? 'reserve' : 'reserve' + i
+}
+
+// Enumerate reserve[n] where n is integer 2 or greater in sequence,
+// stops if there's a gap between integers, although
+// continues even if 'claim' flag does not exist.
+function enumFlagName(callback){
+    var i = 0
+    while(true){
+        var name = flagName(i)
+        if(name in Game.flags)
+            callback(name)
+        else if(1 <= i)
+            break
+        i++
+    }
+}
+
 
 var roleClaimer = {
-
-    flagNames: flagNames,
 
     /** @returns {Spawn} the spawn a claimer shold start with. Can be null if no claimer is needed. */
     claimerDemands: function(){
@@ -19,10 +36,8 @@ var roleClaimer = {
 
         let ret = []
         // Create claimers as the same number of uncontrolled flags
-        for(let i = 0; i < flagNames.length; i++){
-            let theflag = Game.flags[flagNames[i]]
-            if(!theflag)
-                continue
+        enumFlagName(flagName => {
+            let theflag = Game.flags[flagName]
 
             // Cache nearest spawn by PathFinder
             if(!theflag.memory.nearestSpawn && theflag.pos){
@@ -46,7 +61,7 @@ var roleClaimer = {
             if(theflag.memory.nearestSpawn && !theflag.claimer && (!theflag.room || !theflag.room.controller ||
                 !theflag.room.controller.reservation || theflag.room.controller.reservation.ticksToEnd < 4500))
                 ret.push(theflag.memory.nearestSpawn)
-        }
+        })
         return ret
     },
 
@@ -54,11 +69,11 @@ var roleClaimer = {
     run: function(creep) {
 
         if(!creep.memory.flag){
-            for(let i = 0; i < flagNames.length; i++){
-                let flag = Game.flags[flagNames[i]]
+            enumFlagName(flagName => {
+                let flag = Game.flags[flagName]
 
                 if(!flag || flag.room && flag.room.controller && flag.room.controller.reservation && 4500 <= flag.room.controller.reservation.ticksToEnd)
-                    continue
+                    return
 
                 if((function(){
                     for(let name in Game.creeps){
@@ -68,10 +83,10 @@ var roleClaimer = {
                     }
                     return false
                 })())
-                    continue
+                    return
 
                 creep.memory.flag = flag.name
-            }
+            })
         }
 
         if(Game.flags[creep.memory.flag] && creep.room !== Game.flags[creep.memory.flag].room){

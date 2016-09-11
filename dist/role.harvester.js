@@ -344,6 +344,21 @@ var roleHarvester = {
                             //console.log('Withdraw ' + target + ' ' + minerals[m] + ' cost: ' + resource + ' ' + tasks[tasks.length-1].cost)
                         }
                     }
+
+                    target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        filter: s => s.structureType === STRUCTURE_LAB && s.mineralType === RESOURCE_KEANIUM_OXIDE && s.mineralCapacity / 2 < s.mineralAmount
+                    })
+                    if(target){
+                        tasks.push({
+                            name: 'WithdrawLab',
+                            cost: creep.pos.getRangeTo(target) / Math.min(freeCapacity, target.mineralAmount),
+                            target: target,
+                            run: target => {
+                                if(ERR_NOT_IN_RANGE === creep.withdraw(target, RESOURCE_KEANIUM_OXIDE))
+                                    creep.moveTo(target)
+                            }
+                        })
+                    }
                 }
             }
 
@@ -372,12 +387,13 @@ var roleHarvester = {
 
             let terminal = creep.room.terminal
             let storage = creep.room.storage
-            let fillTerminal = terminal && storeableTerminal(terminal) && storage && terminal.store.energy < storage.store.energy * 0.8
+            let fillTerminal = terminal && storeableTerminal(terminal)
+            let fillStorage = storage && (!terminal || storeableTerminal(terminal, true))
 
             // Dump to containers only if the room is controlled by me.
             if(creep.memory.task !== 'harvest' && 0 < _.sum(creep.carry)){
 
-                if(!fillTerminal && creep.room.controller && creep.room.controller.my &&
+                if(fillStorage && creep.room.controller && creep.room.controller.my &&
                     (0 < _.sum(creep.carry) - creep.carry.energy || creep.room.energyAvailable === creep.room.energyCapacityAvailable)){
                     // If this creep has something other than energy, always dump it
                     // into the storage, not the containers.
@@ -390,25 +406,29 @@ var roleHarvester = {
                         let resource = (() => {
                             if(0 < _.sum(creep.carry) - creep.carry.energy){
                                 for(var it in creep.carry){
-                                    if([RESOURCE_ENERGY, RESOURCE_OXYGEN, RESOURCE_KEANIUM].indexOf(it)  < 0 ||
-                                        (labOxyFull && it === RESOURCE_OXYGEN || labKeanFull && it === RESOURCE_KEANIUM))
+                                    // Energy can be a member of carry even if amount is zero.
+                                    if(creep.carry[it] === 0)
+                                        continue
+                                    if(it === RESOURCE_OXYGEN ? labOxyFull : it === RESOURCE_KEANIUM ? labKeanFull : true)
                                         return it
                                 }
                             }
                             else
                                 return RESOURCE_ENERGY
                         })()
-                        tasks.push({
-                            name: 'DumpContainer',
-                            cost: 2 * creep.pos.getRangeTo(target) / Math.min(creep.carry[resource], target.storeCapacity - _.sum(target.store)),
-                            target: target,
-                            run: (target) => {
-                                if(creep.transfer(target, resource) === ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(target);
+                        if(resource){
+                            tasks.push({
+                                name: 'DumpContainer',
+                                cost: 2 * creep.pos.getRangeTo(target) / Math.min(creep.carry[resource], target.storeCapacity - _.sum(target.store)),
+                                target: target,
+                                run: (target) => {
+                                    if(creep.transfer(target, resource) === ERR_NOT_IN_RANGE) {
+                                        creep.moveTo(target);
+                                    }
+                                    creep.memory.resting = undefined
                                 }
-                                creep.memory.resting = undefined
-                            }
-                        })
+                            })
+                        }
                     }
                 }
 
@@ -475,7 +495,23 @@ var roleHarvester = {
                         name: 'FillTower',
                         cost: target.pos.getRangeTo(creep) / Math.min(creep.carry.energy, target.energyCapacity - target.energy),
                         target: target,
-                        run: s => {
+                        run: target => {
+                            if(creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                                creep.moveTo(target)
+                            }
+                        }
+                    })
+                }
+
+                target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: s => s.structureType === STRUCTURE_LAB && s.energy < s.energyCapacity
+                })
+                if(target){
+                    tasks.push({
+                        name: 'FillLab',
+                        cost: target.pos.getRangeTo(creep) / Math.min(creep.carry.energy, target.energyCapacity - target.energy),
+                        target: target,
+                        run: target => {
                             if(creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                                 creep.moveTo(target)
                             }

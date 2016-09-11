@@ -303,7 +303,7 @@ var roleHarvester = {
                     target = labs[0], resource = RESOURCE_OXYGEN
                 else if(creep.carry[RESOURCE_KEANIUM])
                     target = labs[1], resource = RESOURCE_KEANIUM
-                if(target){
+                if(target && 50 <= Math.min(creep.carry[resource], target.mineralCapacity - target.mineralAmount)){
                     tasks.push({
                         name: 'StoreLab',
                         cost: (creep.pos.getRangeTo(target) - .5) / Math.min(creep.carry[resource], target.mineralCapacity - target.mineralAmount),
@@ -315,8 +315,8 @@ var roleHarvester = {
                     })
                 }
 
-                labOxyFull = labs[0].mineralCapacity === labs[0].mineralAmount
-                labKeanFull = labs[1].mineralCapacity === labs[1].mineralAmount
+                labOxyFull = labs[0].mineralCapacity - labs[0].mineralAmount < 50
+                labKeanFull = labs[1].mineralCapacity - labs[1].mineralAmount < 50
                 let labsFull = [labOxyFull, labKeanFull]
 
                 if(50 < freeCapacity){

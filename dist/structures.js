@@ -76,6 +76,22 @@ module.exports = function(){
             else if(0 < _.sum(room.terminal.store) - room.terminal.store.energy)
                 srcTerminal = room.terminal
         }
+
+        if(Game.time % 10 === 0 && 20000 < room.terminal.store.O && 20000 < room.terminal.store.energy){
+            let orders = Game.market.getAllOrders(o => o.resourceType === RESOURCE_OXYGEN && o.type === ORDER_BUY && Game.map.getRoomLinearDistance(o.roomName, room.terminal.room.name) < 10)
+            console.log('[' + room.terminal.room.name + '] orders: ' + orders.length + ', o: ' + room.terminal.store.O)
+            if(orders.length){
+                for(let i = 0; i < orders.length; i++){
+                    let amount = Math.min(room.terminal.store.O, 1000)
+                    let s = 'cost would be ' + Game.market.calcTransactionCost(amount, room.name, orders[i].roomName)
+                    for(let k in orders[i])
+                        s += '[' + k + ']: ' + orders[i][k] + ', '
+                    console.log(s)
+                    if(0.5 <= orders[i].price)
+                        Game.market.deal(orders[i].id, amount, room.name);
+                }
+            }
+        }
     }
 
     // If both source and destination are prepared, send minerals

@@ -77,18 +77,24 @@ module.exports = function(){
                 srcTerminal = room.terminal
         }
 
-        if(Game.time % 10 === 0 && 20000 < room.terminal.store.O && 20000 < room.terminal.store.energy){
-            let orders = Game.market.getAllOrders(o => o.resourceType === RESOURCE_OXYGEN && o.type === ORDER_BUY && Game.map.getRoomLinearDistance(o.roomName, room.terminal.room.name) < 10)
-            console.log('[' + room.terminal.room.name + '] orders: ' + orders.length + ', o: ' + room.terminal.store.O)
-            if(orders.length){
-                for(let i = 0; i < orders.length; i++){
-                    let amount = Math.min(room.terminal.store.O, 1000)
-                    let s = 'cost would be ' + Game.market.calcTransactionCost(amount, room.name, orders[i].roomName)
-                    for(let k in orders[i])
-                        s += '[' + k + ']: ' + orders[i][k] + ', '
-                    console.log(s)
-                    if(0.5 <= orders[i].price)
-                        Game.market.deal(orders[i].id, amount, room.name);
+        if(Game.time % 10 === 0){
+            let resources = [RESOURCE_OXYGEN, RESOURCE_KEANIUM]
+            for(let r = 0; r < resources.length; r++){
+                let resType = resources[r]
+                if(!(30000 < room.terminal.store[resType] && 20000 < room.terminal.store.energy))
+                    continue
+                let orders = Game.market.getAllOrders(o => o.resourceType === resType && o.type === ORDER_BUY && Game.map.getRoomLinearDistance(o.roomName, room.terminal.room.name) <= 14)
+                console.log('[' + room.terminal.room.name + '] orders: ' + orders.length + ', o: ' + room.terminal.store[resType])
+                if(orders.length){
+                    for(let i = 0; i < orders.length; i++){
+                        let amount = Math.min(room.terminal.store[resType], 1000)
+                        let s = 'Selling ' + resType + ' would cost ' + Game.market.calcTransactionCost(amount, room.name, orders[i].roomName)
+                        for(let k in orders[i])
+                            s += '[' + k + ']: ' + orders[i][k] + ', '
+                        console.log(s)
+                        if(0.5 <= orders[i].price)
+                            Game.market.deal(orders[i].id, amount, room.name);
+                    }
                 }
             }
         }

@@ -415,7 +415,7 @@ var roleHarvester = {
                             if(0 < _.sum(creep.carry) - creep.carry.energy){
                                 for(var it in creep.carry){
                                     // Energy can be a member of carry even if amount is zero.
-                                    if(creep.carry[it] === 0)
+                                    if(it == RESOURCE_ENERGY || creep.carry[it] === 0)
                                         continue
                                     if(it === RESOURCE_OXYGEN ? labOxyFull : it === RESOURCE_KEANIUM ? labKeanFull : true)
                                         return it
@@ -429,8 +429,9 @@ var roleHarvester = {
                                 name: 'DumpContainer',
                                 cost: 2 * creep.pos.getRangeTo(target) / Math.min(creep.carry[resource], target.storeCapacity - _.sum(target.store)),
                                 target: target,
-                                run: (target) => {
-                                    if(creep.transfer(target, resource) === ERR_NOT_IN_RANGE) {
+                                resource: resource,
+                                run: function(target){
+                                    if(creep.transfer(target, this.resource) === ERR_NOT_IN_RANGE) {
                                         creep.moveTo(target);
                                     }
                                     creep.memory.resting = undefined

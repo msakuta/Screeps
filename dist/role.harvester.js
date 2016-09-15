@@ -500,9 +500,10 @@ var roleHarvester = {
                     filter: s => s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity
                 })
                 if(target){
+                    let factor = target.energy < target.energyCapacity * .7 ? .1 : 1
                     tasks.push({
                         name: 'FillTower',
-                        cost: target.pos.getRangeTo(creep) / Math.min(creep.carry.energy, target.energyCapacity - target.energy),
+                        cost: factor * target.pos.getRangeTo(creep) / Math.min(creep.carry.energy, target.energyCapacity - target.energy),
                         target: target,
                         run: target => {
                             if(creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {

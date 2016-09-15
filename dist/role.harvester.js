@@ -530,8 +530,8 @@ var roleHarvester = {
                 }
             }
 
-            //if(!tasks.length)
-            //    console.log(creep.name + ': tasks: ' + tasks.length)
+            if(creep.memory.debug && !tasks.length)
+                console.log(creep.name + ': tasks: ' + tasks.length)
             if(tasks.length){
                 let bestTask = _.reduce(tasks, (best, task) => {
                     if(task.cost < best.cost)
@@ -541,8 +541,10 @@ var roleHarvester = {
                 if(!isFinite(bestTask.cost))
                     console.log("WARNING: infinite cost detected! [" + bestTask.name + "]")
                 if(creep.memory.debug){
-                    let costs = _.reduce(tasks, (str, task) => str += '[' + task.name +': ' + task.cost + '],', '')
-                    console.log(creep.name + ': tasks[' + tasks.length + ']: ' + costs + ' target: ' + bestTask.target)
+                    // Sort only if debug flag is on for this creep, because picking a task with least cost doesn't require sorting,
+                    // but it's easier to see on console.
+                    let costs = _.reduce(tasks.sort((a,b) => a.cost - b.cost), (str, task) => str += '[' + task.name +': ' + task.cost + '],', '')
+                    console.log(creep.name + ': tasks[' + tasks.length + '](' + bestTask.name + '): ' + costs + ' target: ' + bestTask.target)
                 }
                 bestTask.run(bestTask.target)
             }

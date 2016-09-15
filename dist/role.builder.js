@@ -73,7 +73,10 @@ var roleBuilder = {
         }
 
         if(_.sum(creep.carry) === 0) {
-            if(deconstructingCreeps < 1 && Game.flags.norepair && 0 < creep.room.find(FIND_STRUCTURES, {filter: s => s.pos.isEqualTo(Game.flags.norepair)}).length){
+            if(deconstructingCreeps < 1 && (
+                Game.flags.norepair && 0 < creep.room.find(FIND_STRUCTURES, {filter: s => s.pos.isEqualTo(Game.flags.norepair)}).length ||
+                Game.flags.deconstruct))
+            {
                 creep.memory.task = 'deconstruct'
                 creep.say('deconstructing');
             }
@@ -174,7 +177,7 @@ var roleBuilder = {
         else if(creep.memory.task === 'deconstruct'){
             var target
             if(creep.memory.target && (target = Game.getObjectById(creep.memory.target))){
-                console.log('decon target: '+ target.id + ', ' + (target instanceof Structure))
+                //console.log('decon target: '+ target.id + ', ' + (target instanceof Structure))
                 if(target instanceof Structure){
                     if(Game.flags.norepair && Game.flags.norepair.pos.isEqualTo(target.pos)){
                         if(ERR_NOT_IN_RANGE === creep.dismantle(target))
@@ -190,8 +193,24 @@ var roleBuilder = {
                     creep.memory.target = target.id
                     creep.say('deconstructing')
                 }
-                else
-                    creep.memory.task = ''
+                else{
+                    var flag = Game.flags.deconstruct
+                    if(flag){
+                        if(flag.room !== creep.room)
+                            creep.moveTo(flag)
+                        else{
+                            let targets = flag.pos.findInRange(FIND_STRUCTURES, 2)
+                            if(targets.length){
+                                if(ERR_NOT_IN_RANGE === creep.dismantle(targets[0]))
+                                    creep.moveTo(targets[0])
+                            }
+                            else
+                                creep.memory.task = undefined
+                        }
+                    }
+                    else
+                        creep.memory.task = undefined
+                }
             }
         }
         else{

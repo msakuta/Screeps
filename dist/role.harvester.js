@@ -388,19 +388,27 @@ var roleHarvester = {
             let terminal = creep.room.terminal
             let storage = creep.room.storage
             let fillTerminal = terminal && storeableTerminal(terminal)
-            let fillStorage = storage && (!terminal || storeableTerminal(terminal, true))
+            let fillStorage = storage && (!terminal || !storeableTerminal(terminal, true))
 
             // Dump to containers only if the room is controlled by me.
             if(creep.memory.task !== 'harvest' && 0 < _.sum(creep.carry)){
 
-                if(fillStorage && creep.room.controller && creep.room.controller.my &&
+                if(creep.room.controller && creep.room.controller.my &&
                     (0 < _.sum(creep.carry) - creep.carry.energy || creep.room.energyAvailable === creep.room.energyCapacityAvailable)){
                     // If this creep has something other than energy, always dump it
                     // into the storage, not the containers.
-                    let target = findTarget(0 < _.sum(creep.carry) - creep.carry.energy ?
-                        [STRUCTURE_STORAGE, STRUCTURE_TERMINAL] :
-                        [STRUCTURE_CONTAINER, STRUCTURE_STORAGE, STRUCTURE_TERMINAL],
-                            s => _.sum(s.store) < s.storeCapacity && storeableTerminal(s))
+                    let structs = []
+                    if(0 === _.sum(creep.carry) - creep.carry.energy)
+                        structs.push(STRUCTURE_CONTAINER)
+                    if(fillStorage)
+                        structs.push(STRUCTURE_STORAGE)
+                    if(fillTerminal)
+                        structs.push(STRUCTURE_STORAGE)
+                    if(creep.memory.debug)
+                        console.log('wtf ' + typeof(structs) + ' nonen: ' + (_.sum(creep.carry) - creep.carry.energy))
+                    let target = findTarget(structs, s => _.sum(s.store) < s.storeCapacity && storeableTerminal(s))
+                    if(creep.memory.debug)
+                        console.log('targ ' + target)
                     if(target){
                         // Dump all types of resources
                         let resource = (() => {

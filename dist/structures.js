@@ -77,8 +77,8 @@ module.exports = function(){
                 srcTerminal = room.terminal
         }
 
-        if(Game.time % 10 === 0){
-            let resources = [RESOURCE_OXYGEN, RESOURCE_KEANIUM]
+        if(Game.time % 10 === 0 && Memory.sellResources && room.terminal){
+            let resources = Memory.sellResources
             for(let r = 0; r < resources.length; r++){
                 let resType = resources[r]
                 if(!(30000 < room.terminal.store[resType] && 20000 < room.terminal.store.energy))

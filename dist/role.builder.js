@@ -198,7 +198,7 @@ var roleBuilder = {
                         if(flag.room !== creep.room)
                             creep.moveTo(flag)
                         else{
-                            let targets = flag.pos.findInRange(FIND_STRUCTURES, 2)
+                            let targets = flag.pos.findInRange(FIND_STRUCTURES, 2, {filter: s=>s.structureType === STRUCTURE_WALL})
                             if(targets.length){
                                 if(ERR_NOT_IN_RANGE === creep.dismantle(targets[0]))
                                     creep.moveTo(targets[0])

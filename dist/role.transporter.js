@@ -166,7 +166,8 @@ module.exports = {
                             return best
                         })
                         let costs = _.reduce(tasks, (str, task) => str += '[' + task.name +': ' + task.cost + '],', '')
-                        //console.log(creep.name + ': tasks: ' + tasks.length + ': bestTask: ' + bestTask.name + ', ' + bestTask.cost + ', ' + costs + ', ' + bestTask.target)
+                        if(creep.memory.debug)
+                            console.log(creep.name + ': tasks: ' + tasks.length + ': bestTask: ' + bestTask.name + ', ' + bestTask.cost + ', ' + costs + ', ' + bestTask.target)
                         bestTask.run(bestTask.target)
                         taskIssued = true
                     }
@@ -182,7 +183,7 @@ module.exports = {
         else if(creep.memory.task === 'store'){
             function linkSpace(source){
                 var ret = source.energyCapacity - source.energy
-                var sink = creep.room.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_LINK && s.sink})
+                var sink = creep.room.find(FIND_MY_STRUCTURES, {filter: s => s.structureType === STRUCTURE_LINK && s.sink})
                 if(sink.length)
                     ret += sink[0].energyCapacity - sink[0].energy
                 //console.log('linkspace: ' + ret + ' ' + creep.carry.energy)
@@ -206,7 +207,7 @@ module.exports = {
                 creep.memory.toSpawn = toSpawn.id
             }
             if(toSpawn){
-                if(creep.room === toSpawn.room || creep.room.terminal){
+                if(creep.room === toSpawn.room || creep.room.terminal && creep.room.terminal.my){
                     var resource = findInventoryResource(creep.carry)
                     let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: s => resource === RESOURCE_ENERGY ? (s.structureType === STRUCTURE_STORAGE ||

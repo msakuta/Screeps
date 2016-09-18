@@ -80,11 +80,6 @@ var roleBuilder = {
                 creep.memory.task = 'deconstruct'
                 creep.say('deconstructing');
             }
-            else{
-                creep.memory.task = 'harvest'
-                creep.memory.target = undefined
-                //creep.say('harvesting');
-            }
         }
         else if(0 < _.sum(creep.carry) - creep.carry.energy){
             // Store the minerals before trying to build
@@ -128,6 +123,10 @@ var roleBuilder = {
                     creep.moveTo(new RoomPosition(25, 25, creep.memory.room))
                 else
                     creep.memory.room = undefined
+            }
+            else if(creep.carry.energy === 0){
+                creep.memory.task = 'harvest'
+                creep.memory.target = undefined
             }
             else if(creep.memory.target && (target = Game.getObjectById(creep.memory.target))){
                 //console.log('builder target: '+ target.id + ', ' + (target instanceof Structure))

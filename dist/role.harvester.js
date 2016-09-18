@@ -215,7 +215,7 @@ var roleHarvester = {
             function storeableTerminal(s, withdraw = false){
                 if(s.structureType !== STRUCTURE_TERMINAL)
                     return true
-                return _.sum(s.store) < (withdraw ? 0.6 : 0.4) * s.storeCapacity
+                return _.sum(s.store) < (withdraw ? 0.4 : 0.6) * s.storeCapacity
             }
 
             if(0 < freeCapacity){

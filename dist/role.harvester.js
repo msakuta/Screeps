@@ -241,14 +241,16 @@ var roleHarvester = {
                 // harvestable energy per tick
                 let workParts = creep.getActiveBodyparts(WORK)
                 if(0 < workParts){
-                    let target = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => sourcePredicate(s, creep)})
-                    if(target && 0 < target.energy){
-                        tasks.push({
-                            name: 'Source',
-                            cost: creep.pos.getRangeTo(target) / Math.min(target.energy, workParts * 2) * 10,
-                            target: target,
-                            run: (target) => harvest(target)
-                        })
+                    if(!creep.room.controller || creep.room.controller.my || !creep.room.controller.reservation || creep.room.controller.reservation.username === creep.owner.username){
+                        let target = creep.pos.findClosestByRange(FIND_SOURCES, {filter: s => sourcePredicate(s, creep)})
+                        if(target && 0 < target.energy){
+                            tasks.push({
+                                name: 'Source',
+                                cost: creep.pos.getRangeTo(target) / Math.min(target.energy, workParts * 2) * 10,
+                                target: target,
+                                run: (target) => harvest(target)
+                            })
+                        }
                     }
 
                     // If this creep is a builder and there is a construction site, it should harvest energy, not minerals.

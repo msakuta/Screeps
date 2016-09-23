@@ -61,7 +61,7 @@ module.exports = {
                 if(!unboosted)
                     return false
                 let labKO = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
-                    filter: s => s.structureType === STRUCTURE_LAB && s.mineralType === RESOURCE_KEANIUM_OXIDE && 0 < s.mineralAmount && 0 < s.energy
+                    filter: s => s.structureType === STRUCTURE_LAB && s.mineralType === RESOURCE_KEANIUM_OXIDE && 30 <= s.mineralAmount && 20 <= s.energy
                 })
                 if(labKO){
                     if(ERR_NOT_IN_RANGE === labKO.boostCreep(creep))

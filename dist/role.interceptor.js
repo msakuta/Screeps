@@ -75,7 +75,9 @@ module.exports = {
                 creep.moveTo(new RoomPosition(25, 25, enemyRoom.name))
                 // Memorize last seen position of enemy to keep going to the room even if
                 // all creeps are killed there.
-                creep.memory.lastSeen = enemyRoom.name
+                // But do not try to conquer keeper lair rooms.
+                if(enemyRoom.find(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_KEEPER_LAIR}).length === 0)
+                    creep.memory.lastSeen = enemyRoom.name
             }
             else if(creep.memory.lastSeen){
                 if(!(creep.memory.lastSeen in Game.rooms))

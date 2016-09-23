@@ -3,6 +3,8 @@ var roleHarvester = require('role.harvester')
 var stats = require('stats')
 
 function builderFilter(s){
+    if(Game.flags.deconstruct && Game.flags.deconstruct.pos.inRangeTo(s.pos, 2))
+        return false
     var structHits = s.hitsMax
     if(Game.flags.norepair && Game.flags.norepair.pos.isEqualTo(s.pos))
         return false
@@ -26,6 +28,8 @@ function builderFilter(s){
 // Towers are penalized by inefficiency for distant structures, but movement cost
 // tend to surpass especially when body count increases after RCL gets high.
 function towerBuilderFilter(s){
+    if(Game.flags.deconstruct && Game.flags.deconstruct.pos.inRangeTo(s.pos, 2))
+        return false
     var structHits = s.hitsMax
     if(Game.flags.norepair && Game.flags.norepair.pos.isEqualTo(s.pos))
         return false

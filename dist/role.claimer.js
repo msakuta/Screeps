@@ -97,7 +97,12 @@ var roleClaimer = {
 
             var target = creep.room.controller
             if(target && !target.my){
-                if(target.level === 0){
+                if(target.level !== 0 || target.reservation && target.reservation.username !== creep.owner.username){
+                    if(ERR_NOT_IN_RANGE === creep.attackController(target)){
+                        creep.moveTo(target)
+                    }
+                }
+                else{
                     if(Game.gcl.level === roomCount || !/claim/.test(creep.memory.flag)){
                         if(ERR_NOT_IN_RANGE === creep.reserveController(target)){
                             creep.moveTo(target)

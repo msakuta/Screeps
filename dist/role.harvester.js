@@ -152,6 +152,18 @@ var roleHarvester = {
             if(creep.memory.task === 'harvest' && _.sum(creep.carry) === creep.carryCapacity)
                 creep.memory.task = undefined
 
+            let storageOrTerminal = creep.room.storage && creep.room.storage.my || creep.room.terminal && creep.room.terminal.my
+
+            // If there is no storage or terminal in the room and the creep has some minerals,
+            // drop it to the ground.
+            if(!storageOrTerminal && 0 < _.sum(creep.carry) - creep.carry.energy){
+                for(let key in creep.carry){
+                    if(key !== RESOURCE_ENERGY){
+                        creep.drop(key)
+                    }
+                }
+            }
+
             var spawn
             for(let k in Game.spawns)
                 if(Game.spawns[k].room === creep.room)
@@ -192,20 +204,22 @@ var roleHarvester = {
 
                 // If this creep carries minerals (resources other than energy),
                 // store them into a strage, but not into a container.
-                source = creep.pos.findClosestByRange(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER && 1 < _.size(s.store)})
-                if(source){
-                    tasks.push({
-                        name: 'ContainerMineral',
-                        cost: 0.5 * source.pos.getRangeTo(creep) / Math.min(freeCapacity, _.sum(source.store) - source.store.energy),
-                        target: source,
-                        run: target => {
-                            var mineralType = (() => {for(var i in target.store) if(i !== RESOURCE_ENERGY) return i})()
-                            if(!mineralType)
-                                return
-                            if(creep.withdraw(target, mineralType))
-                                creep.moveTo(target);
-                        }
-                    })
+                if(storageOrTerminal){
+                    source = creep.pos.findClosestByRange(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_CONTAINER && 1 < _.size(s.store)})
+                    if(source){
+                        tasks.push({
+                            name: 'ContainerMineral',
+                            cost: 0.5 * source.pos.getRangeTo(creep) / Math.min(freeCapacity, _.sum(source.store) - source.store.energy),
+                            target: source,
+                            run: target => {
+                                var mineralType = (() => {for(var i in target.store) if(i !== RESOURCE_ENERGY) return i})()
+                                if(!mineralType)
+                                    return
+                                if(creep.withdraw(target, mineralType))
+                                    creep.moveTo(target);
+                            }
+                        })
+                    }
                 }
 
                 if(creep.memory.task === 'fill' && creep.room.energyAvailable === creep.room.energyCapacityAvailable)

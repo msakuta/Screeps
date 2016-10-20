@@ -197,10 +197,10 @@ module.exports = {
             if(!toSpawn){
                 toSpawn = _.reduce(Game.spawns, (best, spawn) => {
                     var storage = spawn.room.storage
-                    if(!storage)
+                    if(!storage || !storage.my)
                         return best
                     var bestStorage = best.room.storage
-                    if(!bestStorage)
+                    if(!bestStorage || !bestStorage.my)
                         return spawn
                     return stats.totalEnergy(spawn.room)[2] < stats.totalEnergy(best.room)[2] ? spawn : best
                 })

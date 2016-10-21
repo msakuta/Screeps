@@ -546,6 +546,48 @@ var roleHarvester = {
                 }
             }
 
+            // Withdraw (raid) from hostile structures
+            if(0 < freeCapacity && creep.room.controller && creep.room.controller.my){
+                let hostileStore = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                    filter: s => {
+                        if(!(s.energy || s.store && 0 < _.sum(s.store)))
+                            return false
+
+                        // If the structure is covered by hostile rampart, we can't withdraw from it.
+                        let structures = s.pos.lookFor(LOOK_STRUCTURES)
+                        for(let i in structures){
+                            if(structures[i] instanceof StructureRampart && !structures[i].my)
+                                return false
+                        }
+                        return true
+                    }
+                })
+                if(hostileStore){
+                    let resource = hostileStore.energy || _.sum(hostileStore.store)
+                    tasks.push({
+                        name: 'WithdrawHostile',
+                        cost: hostileStore.pos.getRangeTo(creep) / Math.min(freeCapacity, resource),
+                        target: hostileStore,
+                        run: target => {
+                            let resourceType
+                            if(target.energy)
+                                resourceType = RESOURCE_ENERGY
+                            else{
+                                for(var i in target.store){
+                                    resourceType = i
+                                    break
+                                }
+                            }
+                            let ret = creep.withdraw(target, resourceType)
+                            if(ret === ERR_NOT_IN_RANGE)
+                                creep.moveTo(target)
+                             else
+                                console.log(creep.name + ' error not not in range: ' + ret)
+                        }
+                    })
+                }
+            }
+
             if(creep.memory.debug && !tasks.length)
                 console.log(creep.name + ': tasks: ' + tasks.length)
             if(tasks.length){

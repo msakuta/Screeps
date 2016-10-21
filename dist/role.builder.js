@@ -44,6 +44,8 @@ function towerBuilderFilter(s){
     }
     else if(s instanceof StructureRampart)
         structHits = stats.totalEnergy(s.room)[2] + 10000
+    else if(!s.my)
+        return false
     return s.hits < s.hitsMax && s.hits < structHits
 }
 

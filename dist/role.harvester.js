@@ -512,7 +512,7 @@ var roleHarvester = {
 
             // Fill tower with energy
             if(creep.memory.task !== 'harvest' && 10 <= creep.carry.energy){
-                var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                var target = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
                     filter: s => s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity
                 })
                 if(target){
@@ -529,7 +529,7 @@ var roleHarvester = {
                     })
                 }
 
-                target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                target = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
                     filter: s => s.structureType === STRUCTURE_LAB && s.energy < s.energyCapacity
                 })
                 if(target){
